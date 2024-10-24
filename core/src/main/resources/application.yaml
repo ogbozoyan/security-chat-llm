@@ -1,1 +1,64 @@
-spring.application.name=core
+#file: noinspection SpringBootApplicationYaml
+spring:
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:100MB}
+      max-request-size: ${MAX_FILE_SIZE:100MB}
+  application:
+    name: core
+  datasource:
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/core}
+    username: ${DATASOURCE_USERNAME:admin}
+    password: ${DATASOURCE_PASSWORD:admin}
+  ai:
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434/}
+      embedding:
+        options:
+          model: ${AI_OLLAMA_EMBEDDING_OPTIONS_MODEL:mxbai-embed-large:latest}
+      chat:
+        options:
+          model: ${OLLAMA_CHAT_MODEL}
+          temperature: ${OLLAMA_CHAT_TEMPERATURE}
+      vectorstore:
+        pgvector:
+          initialize-schema: true
+          index-type: HNSW
+          distance-type: COSINE_DISTANCE
+          dimensions: 1024
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: "*"
+    endpoint:
+      health:
+        show-details: always
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+springdoc:
+  swagger-ui:
+    enabled: true                  # Enable Swagger UI
+    deep-linking: true             # Enable deep linking
+  api-docs:
+    path: /api-docs                # Path to OpenAPI docs
+logging:
+  pattern:
+    console: "%clr(%d{dd-MM-yyyy HH:mm:ss.SSS}){blue} %clr(${LOG_LEVEL_PATTERN: - %5p}) %clr(${PID:- }){magenta} %clr([%thread]){yellow}  %cyan(%logger{39}:%L)  %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
+  level:
+    org:
+      apache:
+        pdfbox:
+          pdmodel:
+            font: OFF
+        fontbox:
+          ttf: OFF
+      springframework:
+        ai:
+          chat:
+            client:
+              advisor: debug
+server:
+  tomcat:
+    max-swallow-size: ${MAX_FILE_SIZE:100MB}
