@@ -18,6 +18,11 @@ java {
     }
 }
 
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
 
 repositories {
     mavenCentral()
@@ -46,6 +51,12 @@ dependencies {
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll '-Xjsr305=strict'
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.ai:spring-ai-bom:$springAiVersion"
     }
 }
 

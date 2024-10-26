@@ -18,8 +18,8 @@ spring:
           model: ${AI_OLLAMA_EMBEDDING_OPTIONS_MODEL:mxbai-embed-large:latest}
       chat:
         options:
-          model: ${OLLAMA_CHAT_MODEL}
-          temperature: ${OLLAMA_CHAT_TEMPERATURE}
+          model: ${OLLAMA_CHAT_MODEL:Lily-Cybersecurity-7B-v0.2-GGUF:latest}
+          temperature: ${OLLAMA_CHAT_TEMPERATURE:0.4}
       vectorstore:
         pgvector:
           initialize-schema: true
