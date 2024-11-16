@@ -1,4 +1,4 @@
-package ru.ogbozoyan.core.service.pg
+package ru.ogbozoyan.core.service.ingestion
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -16,13 +16,13 @@ import java.util.*
 
 
 @Service
-class PGVectorStoreService(
+class IngestionService(
     private val vectorStore: VectorStore
 ) {
 
-    private val log: Logger = LoggerFactory.getLogger(PGVectorStoreService::class.java)
+    private val log: Logger = LoggerFactory.getLogger(IngestionService::class.java)
 
-    fun saveNewPDFAsync(pdf: Resource, fName: String?) {
+    suspend fun saveNewPDFAsync(pdf: Resource, fName: String?) {
         val fileName = fName ?: "${UUID.randomUUID()}.pdf"
         val textSplitter = TokenTextSplitter()
         try {
@@ -51,7 +51,7 @@ class PGVectorStoreService(
         }
     }
 
-    fun saveNewTextAsync(txt: Resource, fName: String?) {
+    suspend fun saveNewTextAsync(txt: Resource, fName: String?) {
 
         val fileName = fName ?: "${UUID.randomUUID()}.txt"
         val textSplitter = TokenTextSplitter()

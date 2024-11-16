@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.multipart.MultipartFile
-import ru.ogbozoyan.core.service.pg.FileTypeEnum
+import ru.ogbozoyan.core.service.ingestion.FileTypeEnum
 import ru.ogbozoyan.core.web.dto.ApiRequest
 import ru.ogbozoyan.core.web.dto.ApiResponse
 

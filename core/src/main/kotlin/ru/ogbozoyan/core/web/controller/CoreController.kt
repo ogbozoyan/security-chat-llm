@@ -8,8 +8,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import ru.ogbozoyan.core.service.ollama.OllamaService
-import ru.ogbozoyan.core.service.pg.FileTypeEnum
-import ru.ogbozoyan.core.service.pg.PgEvent
+import ru.ogbozoyan.core.service.ingestion.FileTypeEnum
+import ru.ogbozoyan.core.service.ingestion.IngestionEvent
 import ru.ogbozoyan.core.web.dto.ApiRequest
 import ru.ogbozoyan.core.web.dto.ApiResponse
 
@@ -35,7 +35,7 @@ class CoreController(
         return try {
             log.info("Event triggered via REST endpoint for file: ${file.originalFilename} with type: $type")
             val byteArrayResource = ByteArrayResource(file.bytes)
-            publisher.publishEvent(PgEvent(byteArrayResource, type, file.originalFilename))
+            publisher.publishEvent(IngestionEvent(byteArrayResource, type, file.originalFilename))
         } catch (e: Exception) {
             log.error("Error triggering event: {}", e.message)
         }
