@@ -6,7 +6,9 @@ plugins {
 }
 
 ext {
-    springAiVersion = "1.0.0-M3"
+//    springAiVersion = "1.0.0-M3"
+    springAiVersion = "1.0.0-SNAPSHOT"
+    set('otelInstrumentationVersion', "2.9.0-alpha")
 }
 
 group = 'ru.ogbozoyan'
@@ -47,6 +49,22 @@ dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1"
+
+    implementation platform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:${otelInstrumentationVersion}")
+    implementation platform("org.springframework.ai:spring-ai-bom:${springAiVersion}")
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.ai:spring-ai-ollama-spring-boot-starter'
+    implementation 'org.springframework.ai:spring-ai-pgvector-store-spring-boot-starter'
+
+    implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+    implementation 'io.micrometer:micrometer-registry-otlp'
+    implementation 'net.ttddyy.observation:datasource-micrometer-spring-boot:1.0.5'
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0'
+
+    testAndDevelopmentOnly 'org.springframework.boot:spring-boot-devtools'
 }
 
 kotlin {
