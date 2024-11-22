@@ -18,7 +18,7 @@ spring:
           model: ${AI_OLLAMA_EMBEDDING_OPTIONS_MODEL:mxbai-embed-large:latest}
       chat:
         options:
-          model: ${OLLAMA_CHAT_MODEL:Lily-Cybersecurity-7B-v0.2-GGUF:latest}
+          model: ${OLLAMA_CHAT_MODEL:huggingface.co/segolilylabs/Lily-Cybersecurity-7B-v0.2-GGUF:latest}
           temperature: ${OLLAMA_CHAT_TEMPERATURE:0.4}
       vectorstore:
         pgvector:
@@ -47,6 +47,10 @@ logging:
   pattern:
     console: "%clr(%d{dd-MM-yyyy HH:mm:ss.SSS}){blue} %clr(${LOG_LEVEL_PATTERN: - %5p}) %clr(${PID:- }){magenta} %clr([%thread]){yellow}  %cyan(%logger{39}:%L)  %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
   level:
+    io:
+      micrometer:
+        registry:
+          otlp: OFF
     org:
       apache:
         pdfbox:

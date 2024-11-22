@@ -6,9 +6,8 @@ plugins {
 }
 
 ext {
-//    springAiVersion = "1.0.0-M3"
-    springAiVersion = "1.0.0-SNAPSHOT"
     set('otelInstrumentationVersion', "2.9.0-alpha")
+    set('springAiVersion', "1.0.0-M4")
 }
 
 group = 'ru.ogbozoyan'

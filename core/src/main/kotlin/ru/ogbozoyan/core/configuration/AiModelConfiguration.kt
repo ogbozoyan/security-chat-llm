@@ -8,7 +8,6 @@ import org.springframework.ai.chat.client.advisor.VectorStoreChatMemoryAdvisor
 import org.springframework.ai.chat.memory.ChatMemory
 import org.springframework.ai.chat.memory.InMemoryChatMemory
 import org.springframework.ai.embedding.EmbeddingModel
-import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever
 import org.springframework.ai.vectorstore.SearchRequest
 import org.springframework.ai.vectorstore.SimpleVectorStore
 import org.springframework.ai.vectorstore.VectorStore
@@ -21,16 +20,16 @@ import org.springframework.core.io.Resource
 @Configuration
 class AiModelConfiguration(
     private val chatClientBuilder: ChatClient.Builder,
-    @Value("classpath:/prompts/system-message.st") private val systemMessage: Resource,
+    @Value("classpath:/prompts/system-message-ru.st") private val systemMessage: Resource,
     private val vectorStore: VectorStore
 ) {
 
     @Bean
     fun ollamaClient(): ChatClient {
-        val documentRetriever: VectorStoreDocumentRetriever = VectorStoreDocumentRetriever.builder()
-            .vectorStore(vectorStore)
-            .similarityThreshold(0.50)
-            .build()
+//        val documentRetriever: VectorStoreDocumentRetriever = VectorStoreDocumentRetriever.builder()
+//            .vectorStore(vectorStore)
+//            .similarityThreshold(0.50)
+//            .build()
 
         return chatClientBuilder
             .defaultSystem(systemMessage)

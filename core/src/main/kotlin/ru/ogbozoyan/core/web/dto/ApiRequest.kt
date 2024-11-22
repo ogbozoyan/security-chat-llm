@@ -1,2 +1,5 @@
 package ru.ogbozoyan.core.web.dto
-data class ApiRequest(val question: String)
+
+import java.util.UUID
+
+data class ApiRequest(val question: String, val conversationId: UUID)

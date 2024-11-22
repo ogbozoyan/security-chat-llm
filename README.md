@@ -1,6 +1,5 @@
 TODO:
 Add elk
-Make ollama model file from https://huggingface.co/segolilylabs/Lily-Cybersecurity-7B-v0.2-GGUF
 add frontend client like https://openwebui.com/
 
 Implement RAG based on lectures of subject:
