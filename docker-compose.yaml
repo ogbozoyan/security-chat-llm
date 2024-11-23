@@ -23,7 +23,7 @@ services:
     command: >
       sh -c "
       curl http://ollama:11434/api/pull -d '{\"name\":\"mxbai-embed-large\"}' &&
-      curl http://ollama:11434/api/pull -d '{\"name\":\"https://huggingface.co/segolilylabs/Lily-Cybersecurity-7B-v0.2-GGUF\"}'
+      curl http://ollama:11434/api/pull -d '{\"name\":\"llama3.2:3b\"}'
       "
     depends_on:
       ollama:

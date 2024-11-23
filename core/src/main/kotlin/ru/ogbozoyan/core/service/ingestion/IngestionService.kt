@@ -34,8 +34,6 @@ class IngestionService(
             val pagePdfDocumentReader = PagePdfDocumentReader(pdf, config)
             val documents: List<Document> = pagePdfDocumentReader.get()
 
-            enrichWithFileName(documents, fileName)
-
             vectorStore.add(textSplitter.apply(documents))
             log.info("Successfully loaded Vector Store by {}", fileName)
 
@@ -62,8 +60,6 @@ class IngestionService(
             textReader.charset = Charset.defaultCharset()
             val documents = textReader.get()
 
-            enrichWithFileName(documents, fileName)
-
             log.info("Creating and storing Embeddings from Documents")
             vectorStore.accept(textSplitter.split(documents))
             log.info("Successfully loaded Vector Store by {} .txt/md files", fileName)
@@ -81,19 +77,4 @@ class IngestionService(
         }
     }
 
-    /**
-     *
-     * If processing Resource doesn't have getFileName() at org.springframework.ai.transformer.splitter.TextSplitter#createDocuments will throw NPE
-     */
-    //TODO: Delete after spring-ai M4 release, i've fixed npe in that milestone)
-    private fun enrichWithFileName(
-        documents: List<Document>,
-        fileName: String
-    ): List<Document> {
-
-        for (document: Document in documents) {
-            document.metadata["file_name"] = fileName
-        }
-        return documents
-    }
 }
