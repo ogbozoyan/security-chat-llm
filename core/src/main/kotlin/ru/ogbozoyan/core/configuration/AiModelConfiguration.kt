@@ -47,14 +47,12 @@ class AiModelConfiguration(
             RetrievalAugmentationAdvisor.builder().documentRetriever(documentRetriever).queryAugmenter(queryAugmenter)
                 .order(Ordered.HIGHEST_PRECEDENCE + 100).build()
 
-
         val simpleLoggerAdvisor = SimpleLoggerAdvisor(
             advisedRequestToString(), DEFAULT_RESPONSE_TO_STRING, Ordered.HIGHEST_PRECEDENCE + 1_000
         )
 
-        return chatClientBuilder.defaultSystem(systemMessage).defaultAdvisors(
-                chatMemoryAdvisor, simpleLoggerAdvisor, retrievalAugmentationAdvisor
-            )
+        return chatClientBuilder.defaultSystem(systemMessage)
+            .defaultAdvisors(chatMemoryAdvisor, simpleLoggerAdvisor, retrievalAugmentationAdvisor)
             .build()
     }
 
@@ -105,12 +103,13 @@ class AiModelConfiguration(
             append("Advisor Params: ${req.advisorParams.ifEmpty { "N/A" }}; ")
             append(
                 "Advise Context: ${
-                req.adviseContext.map { (key, value) ->
-                    val sanitizedKey = key.replace("\n", "\\n")
-                    val sanitizedValue = value?.toString()?.replace("\n", "\\n") ?: "N/A"
-                    "$sanitizedKey=$sanitizedValue"
-                }.joinToString(", ", "{", "}")
-            }; ")
+                    req.adviseContext.map { (key, value) ->
+                        val sanitizedKey = key.replace("\n", "\\n")
+                        val sanitizedValue = value?.toString()?.replace("\n", "\\n") ?: "N/A"
+                        "$sanitizedKey=$sanitizedValue"
+                    }.joinToString(", ", "{", "}")
+                }; "
+            )
             append("Tool Context: ${req.toolContext.ifEmpty { "N/A" }}; ")
         }
     }

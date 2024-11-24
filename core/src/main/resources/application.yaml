@@ -23,7 +23,7 @@ spring:
       chat:
         options:
           model: ${OLLAMA_CHAT_MODEL:llama3.2:3b}
-          temperature: ${OLLAMA_CHAT_TEMPERATURE:0.6}
+          temperature: ${OLLAMA_CHAT_TEMPERATURE:0.5}
           num-ctx: 16384
       vectorstore:
         pgvector:

@@ -14,6 +14,7 @@ import org.springframework.web.client.RestClient
 import java.time.Duration
 import java.util.concurrent.Executor
 
+const val MOCK_USER_ID: String = "MOCK_USER_ID"
 
 @Configuration
 class ApplicationConfiguration {
