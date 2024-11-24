@@ -20,11 +20,16 @@ class IngestionService(
     private val vectorStore: VectorStore
 ) {
 
+    private val CHUNK_SIZE = 500
+
     private val log: Logger = LoggerFactory.getLogger(IngestionService::class.java)
 
     suspend fun saveNewPDFAsync(pdf: Resource, fName: String?) {
         val fileName = fName ?: "${UUID.randomUUID()}.pdf"
-        val textSplitter = TokenTextSplitter()
+        val textSplitter = TokenTextSplitter.builder()
+            .withChunkSize(CHUNK_SIZE)
+            .build()
+
         try {
             log.info("Loading {} Reference PDF into Vector Store", fileName)
             val config = PdfDocumentReaderConfig.builder()
@@ -32,7 +37,9 @@ class IngestionService(
                 .build()
 
             val pagePdfDocumentReader = PagePdfDocumentReader(pdf, config)
-            val documents: List<Document> = pagePdfDocumentReader.get()
+            val documents = pagePdfDocumentReader.get()
+
+            enrichWithFileName(documents, fileName)
 
             vectorStore.add(textSplitter.apply(documents))
             log.info("Successfully loaded Vector Store by {}", fileName)
@@ -52,13 +59,17 @@ class IngestionService(
     suspend fun saveNewTextAsync(txt: Resource, fName: String?) {
 
         val fileName = fName ?: "${UUID.randomUUID()}.txt"
-        val textSplitter = TokenTextSplitter()
+        val textSplitter = TokenTextSplitter.builder()
+            .withChunkSize(CHUNK_SIZE)
+            .build()
 
         try {
             log.info("Loading {} .txt/md files as Documents", fileName)
             val textReader = TextReader(txt)
             textReader.charset = Charset.defaultCharset()
             val documents = textReader.get()
+
+            enrichWithFileName(documents, fileName)
 
             log.info("Creating and storing Embeddings from Documents")
             vectorStore.accept(textSplitter.split(documents))
@@ -75,6 +86,17 @@ class IngestionService(
             throw e
 
         }
+    }
+
+    private fun enrichWithFileName(
+        documents: List<Document>,
+        fileName: String
+    ): List<Document> {
+
+        for (document: Document in documents) {
+            document.metadata["file_name"] = fileName
+        }
+        return documents
     }
 
 }
