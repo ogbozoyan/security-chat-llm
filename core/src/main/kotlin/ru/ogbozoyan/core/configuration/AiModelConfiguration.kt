@@ -33,7 +33,7 @@ class AiModelConfiguration(
     fun ollamaClient(): ChatClient {
 
         val chatMemoryAdvisor =
-            VectorStoreChatMemoryAdvisor.builder(vectorStore).withOrder(Ordered.HIGHEST_PRECEDENCE + 100)
+            VectorStoreChatMemoryAdvisor.builder(vectorStore).withOrder(Ordered.LOWEST_PRECEDENCE - 500)
                 .withChatMemoryRetrieveSize(CHAT_MEMORY_SIZE).withConversationId(DEFAULT_CHAT_MEMORY_CONVERSATION_ID)
                 .build()
 
@@ -45,10 +45,10 @@ class AiModelConfiguration(
 
         val retrievalAugmentationAdvisor =
             RetrievalAugmentationAdvisor.builder().documentRetriever(documentRetriever).queryAugmenter(queryAugmenter)
-                .order(Ordered.HIGHEST_PRECEDENCE + 100).build()
+                .order(Ordered.LOWEST_PRECEDENCE - 1_000).build()
 
         val simpleLoggerAdvisor = SimpleLoggerAdvisor(
-            advisedRequestToString(), DEFAULT_RESPONSE_TO_STRING, Ordered.HIGHEST_PRECEDENCE + 1_000
+            advisedRequestToString(), DEFAULT_RESPONSE_TO_STRING, Ordered.HIGHEST_PRECEDENCE
         )
 
         return chatClientBuilder.defaultSystem(systemMessage)
