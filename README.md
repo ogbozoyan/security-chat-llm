@@ -1,7 +1,8 @@
 TODO:
 Add elk
-Make ollama model file from https://huggingface.co/segolilylabs/Lily-Cybersecurity-7B-v0.2-GGUF
 add frontend client like https://openwebui.com/
+add
+OLTP https://medium.com/@yangli136/how-opentelemetry-is-integrated-with-spring-boot-application-7e309efc0011 https://spring.io/blog/2024/10/28/lets-use-opentelemetry-with-spring
 
 Implement RAG based on lectures of subject:
 1. Find related literature
