@@ -6,6 +6,6 @@ import java.util.*
 data class Chat(
     val chatId: UUID,
     val userId: String,
-    val title: String,
+    var title: String,
     val createdAt: LocalDateTime
 )

@@ -1,6 +1,6 @@
 package ru.ogbozoyan.core.repository
 
-import ru.ogbozoyan.core.model.ChatMessage
+import ru.ogbozoyan.core.model.ChatHistory
 import java.util.*
 
 /**
@@ -8,6 +8,6 @@ import java.util.*
  * @since 24.11.2024
  */
 interface ChatHistoryRepository {
-    fun upsert(chatMessage: ChatMessage): Int
-    fun findByChatId(chatId: UUID): List<ChatMessage>
+    fun upsert(chatHistory: ChatHistory): Int
+    fun findByChatId(chatId: UUID): List<ChatHistory>
 }

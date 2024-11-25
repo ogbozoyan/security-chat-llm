@@ -3,13 +3,13 @@ package ru.ogbozoyan.core.repository
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
 import org.springframework.stereotype.Repository
-import ru.ogbozoyan.core.model.ChatMessage
+import ru.ogbozoyan.core.model.ChatHistory
 import java.util.*
 
 @Repository
 class ChatHistoryRepositoryImpl(private val jdbcTemplate: JdbcTemplate) : ChatHistoryRepository {
-    private val rowMapper = RowMapper<ChatMessage> { rs, _ ->
-        ChatMessage(
+    private val rowMapper = RowMapper<ChatHistory> { rs, _ ->
+        ChatHistory(
             messageId = rs.getLong("message_id"),
             chatId = UUID.fromString(rs.getString("chat_id")),
             isUser = rs.getBoolean("is_user"),
@@ -18,7 +18,7 @@ class ChatHistoryRepositoryImpl(private val jdbcTemplate: JdbcTemplate) : ChatHi
         )
     }
 
-    override fun findByChatId(chatId: UUID): List<ChatMessage> {
+    override fun findByChatId(chatId: UUID): List<ChatHistory> {
         val sql =
             """
             SELECT * FROM chat_history WHERE chat_id = ? ORDER BY created_at 
@@ -26,7 +26,7 @@ class ChatHistoryRepositoryImpl(private val jdbcTemplate: JdbcTemplate) : ChatHi
         return jdbcTemplate.query(sql, rowMapper, chatId)
     }
 
-    override fun upsert(chatMessage: ChatMessage): Int {
+    override fun upsert(chatHistory: ChatHistory): Int {
 
         val sql =
             """
@@ -36,10 +36,10 @@ class ChatHistoryRepositoryImpl(private val jdbcTemplate: JdbcTemplate) : ChatHi
 
         return jdbcTemplate.update(
             sql,
-            chatMessage.chatId,
-            chatMessage.isUser,
-            chatMessage.content,
-            chatMessage.createdAt
+            chatHistory.chatId,
+            chatHistory.isUser,
+            chatHistory.content,
+            chatHistory.createdAt
         )
     }
 }

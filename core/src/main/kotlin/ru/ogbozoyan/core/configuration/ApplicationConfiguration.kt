@@ -9,6 +9,7 @@ import org.springframework.boot.web.client.RestClientCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.client.BufferingClientHttpRequestFactory
+import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.web.client.RestClient
 import java.time.Duration
@@ -17,6 +18,7 @@ import java.util.concurrent.Executor
 const val MOCK_USER_ID: String = "MOCK_USER_ID"
 
 @Configuration
+@EnableScheduling
 class ApplicationConfiguration {
 
     @Bean(name = ["asyncThreadPoolExecutor"])

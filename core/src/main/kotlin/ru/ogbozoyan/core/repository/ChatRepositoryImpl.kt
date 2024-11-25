@@ -22,6 +22,11 @@ class ChatRepositoryImpl(private val jdbcTemplate: JdbcTemplate) : ChatRepositor
         return jdbcTemplate.query(sql, rowMapper, userId)
     }
 
+    override fun findAll(): List<Chat> {
+        val sql = "SELECT * FROM chat"
+        return jdbcTemplate.query(sql, rowMapper)
+    }
+
     override fun upsert(chat: Chat): UUID {
         val sql =
             """
