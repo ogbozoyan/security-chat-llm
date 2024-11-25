@@ -57,6 +57,12 @@ class AiModelConfiguration(
     }
 
     @Bean
+    fun ollamaWithoutRAG(): ChatClient {
+        return chatClientBuilder
+            .build()
+    }
+
+    @Bean
     fun simpleVectorStore(embeddingModel: EmbeddingModel): VectorStore {
         return SimpleVectorStore(embeddingModel)
     }

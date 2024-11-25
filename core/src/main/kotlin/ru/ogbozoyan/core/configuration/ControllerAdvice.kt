@@ -45,7 +45,6 @@ class ControllerAdvice(
         try {
             val errorMessage =
                 getErrorMessage(HttpStatus.BAD_REQUEST, ex.message ?: "No message provided", req, ex.javaClass.name)
-            log.warn("Bad request: $errorMessage")
             return ResponseEntity(errorMessage, headers, HttpStatus.BAD_REQUEST)
         } catch (e: Exception) {
             return responseIfBrokenControllerAdvice(e, req, ex.javaClass.name)
@@ -61,7 +60,6 @@ class ControllerAdvice(
         try {
             val errorMessage =
                 getErrorMessage(HttpStatus.BAD_REQUEST, ex.message ?: "No message provided", req, ex.javaClass.name)
-            log.warn("Bad request: $errorMessage")
             return ResponseEntity(errorMessage, headers, HttpStatus.BAD_REQUEST)
         } catch (e: Exception) {
             return responseIfBrokenControllerAdvice(e, req, ex.javaClass.name)
@@ -77,7 +75,6 @@ class ControllerAdvice(
         try {
             val errorMessage =
                 getErrorMessage(HttpStatus.BAD_REQUEST, ex.message ?: "No message provided", req, ex.javaClass.name)
-            log.warn("Validation error: $errorMessage")
             return ResponseEntity(errorMessage, headers, HttpStatus.BAD_REQUEST)
         } catch (e: Exception) {
             return responseIfBrokenControllerAdvice(e, req, ex.javaClass.name)
@@ -90,7 +87,6 @@ class ControllerAdvice(
         try {
             val errorMessage =
                 getErrorMessage(HttpStatus.UNAUTHORIZED, ex.message ?: "No message provided", req, ex.javaClass.name)
-            log.warn("Unauthorized access: $errorMessage")
             return ResponseEntity(errorMessage, headers, HttpStatus.UNAUTHORIZED)
         } catch (e: Exception) {
             return responseIfBrokenControllerAdvice(e, req, ex.javaClass.name)
@@ -102,7 +98,6 @@ class ControllerAdvice(
     fun handleNoHandlerFound(ex: NoHandlerFoundException, req: WebRequest): ResponseEntity<CustomErrorMessage> {
         try {
             val errorMessage = getErrorMessage(HttpStatus.NOT_FOUND, RESOURCE_NOT_FOUND, req, ex.javaClass.name)
-            log.info("Resource not found: $errorMessage")
             return ResponseEntity(errorMessage, headers, HttpStatus.NOT_FOUND)
         } catch (e: Exception) {
             return responseIfBrokenControllerAdvice(e, req, ex.javaClass.name)
@@ -116,7 +111,6 @@ class ControllerAdvice(
         try {
             val errorMessage =
                 getErrorMessage(HttpStatus.NOT_FOUND, ex.message ?: "No message provided", req, ex.javaClass.name)
-            log.info("No resource found: $errorMessage")
             return ResponseEntity(errorMessage, headers, HttpStatus.NOT_FOUND)
         } catch (e: Exception) {
             return responseIfBrokenControllerAdvice(e, req, ex.javaClass.name)
@@ -134,7 +128,6 @@ class ControllerAdvice(
                 req,
                 ex.javaClass.name
             )
-            log.error("Internal server error: $errorMessage", ex)
             return ResponseEntity(errorMessage, headers, HttpStatus.INTERNAL_SERVER_ERROR)
         } catch (e: Exception) {
             return responseIfBrokenControllerAdvice(e, req, ex.javaClass.name)
@@ -150,9 +143,6 @@ class ControllerAdvice(
         try {
             val errorMessage =
                 getErrorMessage(HttpStatus.BAD_REQUEST, ex.message ?: "No message provided", req, ex.javaClass.name)
-
-            log.warn("Illegal argument: {}", errorMessage)
-
             return ResponseEntity(errorMessage, headers, HttpStatus.BAD_REQUEST)
         } catch (e: Exception) {
             return responseIfBrokenControllerAdvice(e, req, ex.javaClass.name)
@@ -170,7 +160,6 @@ class ControllerAdvice(
                     req,
                     ex.javaClass.name
                 )
-            log.error("Unexpected error: $errorMessage", ex)
             return ResponseEntity(errorMessage, headers, HttpStatus.INTERNAL_SERVER_ERROR)
         } catch (e: Exception) {
             return responseIfBrokenControllerAdvice(e, req, ex.javaClass.name)

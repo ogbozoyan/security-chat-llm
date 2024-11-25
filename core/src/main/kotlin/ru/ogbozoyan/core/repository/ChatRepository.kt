@@ -6,4 +6,5 @@ import java.util.*
 interface ChatRepository {
     fun findByUserId(userId: String): List<Chat>
     fun upsert(chat: Chat): UUID
+    fun findAll(): List<Chat>
 }

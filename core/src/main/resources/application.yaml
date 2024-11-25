@@ -67,6 +67,12 @@ logging:
         fontbox:
           ttf: OFF
       springframework:
+        web:
+          servlet:
+            mvc:
+              method:
+                annotation:
+                  ExceptionHandlerExceptionResolver: OFF
         ai:
           chat:
             client:
