@@ -31,7 +31,8 @@ class ChatHistoryRepositoryImpl(private val jdbcTemplate: JdbcTemplate) : ChatHi
         val sql =
             """
             INSERT INTO chat_history (chat_id, is_user, content, created_at) 
-            VALUES ( ?, ?, ?, ?) 
+            VALUES ( ?, ?, ?, ?)
+            RETURNING message_id
             """
 
         return jdbcTemplate.update(

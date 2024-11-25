@@ -7,9 +7,9 @@ import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import ru.ogbozoyan.core.service.ollama.OllamaService
 import ru.ogbozoyan.core.service.ingestion.FileTypeEnum
 import ru.ogbozoyan.core.service.ingestion.IngestionEvent
+import ru.ogbozoyan.core.service.ollama.OllamaService
 import ru.ogbozoyan.core.web.dto.ApiRequest
 import ru.ogbozoyan.core.web.dto.ApiResponse
 
@@ -40,5 +40,4 @@ class CoreController(
             log.error("Error triggering event: {}", e.message)
         }
     }
-
 }

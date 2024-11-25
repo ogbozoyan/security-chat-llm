@@ -18,7 +18,7 @@ interface CoreApi {
         consumes = [MediaType.APPLICATION_JSON_VALUE],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
-    @Operation(summary = "Ask question to llm", description = "Returns the result")
+    @Operation(summary = "Ask question to llm and save chat", description = "Returns the result")
     @ResponseStatus(HttpStatus.OK)
     fun query(@RequestBody request: ApiRequest): ResponseEntity<ApiResponse>
 
@@ -27,5 +27,6 @@ interface CoreApi {
         consumes = [MediaType.MULTIPART_FORM_DATA_VALUE]
     )
     @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Ask question to llm and save chat", description = "Returns the result")
     fun embedFile(file: MultipartFile, type: FileTypeEnum)
 }

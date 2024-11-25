@@ -1,6 +1,5 @@
 package ru.ogbozoyan.core.service.ollama
 
-import kotlinx.coroutines.CoroutineScope
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
@@ -9,16 +8,18 @@ import org.springframework.ai.chat.messages.UserMessage
 import org.springframework.ai.chat.prompt.Prompt
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import ru.ogbozoyan.core.service.chat.ChatService
 import ru.ogbozoyan.core.web.dto.ApiRequest
 import ru.ogbozoyan.core.web.dto.ApiResponse
+import ru.ogbozoyan.core.web.dto.StreamApiResponse
 
 
 @Service
 class OllamaService(
     @Qualifier("ollamaClient") private val ollamaChat: ChatClient,
     private val chatService: ChatService,
-    private val applicationScope: CoroutineScope
 ) {
     private val log: Logger = LoggerFactory.getLogger(javaClass.simpleName)
 
@@ -50,12 +51,61 @@ class OllamaService(
             chatService.saveMessage(request.conversationId, false, responseContent)
             log.info("AI response saved to chat history for conversationId=${request.conversationId}")
 
-            return ApiResponse(responseContent)
+            return ApiResponse(answer = responseContent)
 
         } catch (e: Exception) {
             log.error("Error while calling AI for conversationId=${request.conversationId}: ${e.message}", e)
             throw e
         }
+    }
+
+    fun chatStreaming(request: ApiRequest): Flux<StreamApiResponse> {
+        val messageAccumulator = StringBuilder()
+
+        val chatHistory = chatService.getMessagesForChat(request.conversationId)
+        log.info("Fetched chat history for conversationId=${request.conversationId}. Message count: ${chatHistory.size}")
+
+        if (chatHistory.isEmpty()) {
+            createNewChatWithConversationId(request)
+        } else {
+            chatService.saveMessage(request.conversationId, true, request.question)
+        }
+
+        return ollamaChat
+            .prompt(getPrompt(request))
+            .advisors { advisorSpec ->
+                advisorSpec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, request.conversationId)
+            }
+            .stream()
+            .content()
+            .map { part ->
+                log.debug("Received part of response: $part")
+                // Аккумулируем части сообщения
+                messageAccumulator.append(part)
+                // Возвращаем текущую часть без сохранения
+                StreamApiResponse(content = part, isFinal = false, messageId = null, chatId = request.conversationId)
+            }
+            .concatWith(
+                Mono.defer {
+
+                    val fullMessage = messageAccumulator.toString()
+                    val messageId =
+                        chatService.saveMessage(request.conversationId, isUser = false, content = fullMessage)
+                    log.info("Full message saved with messageId=$messageId for conversationId=${request.conversationId}")
+
+                    Mono.just(
+                        StreamApiResponse(
+                            content = "Message saved successfully",
+                            isFinal = true,
+                            chatId = request.conversationId,
+                            messageId = messageId.toLong(),
+                        )
+                    )
+                }
+            )
+            .doOnError { e ->
+                log.error("Error during streaming for conversationId=${request.conversationId}: ${e.message}", e)
+            }
     }
 
     private fun createNewChatWithConversationId(request: ApiRequest) {
