@@ -10,12 +10,14 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import ru.ogbozoyan.core.model.ChatHistory
 import ru.ogbozoyan.core.service.chat.ChatService
 import ru.ogbozoyan.core.web.dto.ApiRequest
 import ru.ogbozoyan.core.web.dto.ApiResponse
 import ru.ogbozoyan.core.web.dto.StreamApiResponse
 
 
+@Suppress("BlockingMethodInNonBlockingContext")
 @Service
 class OllamaService(
     @Qualifier("ollamaClient") private val ollamaChat: ChatClient,
@@ -27,6 +29,7 @@ class OllamaService(
         try {
             val chatHistory = chatService.getMessagesForChat(request.conversationId)
             log.info("Fetched chat history for conversationId=${request.conversationId}. Message count: ${chatHistory.size}")
+
 
             if (chatHistory.isEmpty()) {
                 createNewChatWithConversationId(request)
@@ -71,6 +74,8 @@ class OllamaService(
             chatService.saveMessage(request.conversationId, true, request.question)
         }
 
+        val nextMessageId = chatService.getNextMessageId()
+
         return ollamaChat
             .prompt(getPrompt(request))
             .advisors { advisorSpec ->
@@ -80,25 +85,35 @@ class OllamaService(
             .content()
             .map { part ->
                 log.debug("Received part of response: $part")
-                // Аккумулируем части сообщения
+
                 messageAccumulator.append(part)
-                // Возвращаем текущую часть без сохранения
-                StreamApiResponse(content = part, isFinal = false, messageId = null, chatId = request.conversationId)
+
+                StreamApiResponse(
+                    content = part,
+                    isFinal = false,
+                    messageId = nextMessageId,
+                    chatId = request.conversationId
+                )
             }
             .concatWith(
                 Mono.defer {
 
                     val fullMessage = messageAccumulator.toString()
-                    val messageId =
-                        chatService.saveMessage(request.conversationId, isUser = false, content = fullMessage)
-                    log.info("Full message saved with messageId=$messageId for conversationId=${request.conversationId}")
+
+                    log.info("Full message saved with messageId=$nextMessageId for conversationId=${request.conversationId}")
 
                     Mono.just(
                         StreamApiResponse(
                             content = "Message saved successfully",
                             isFinal = true,
                             chatId = request.conversationId,
-                            messageId = messageId.toLong(),
+                            messageId = chatService.saveMessage(
+                                request.conversationId,
+                                isUser = false,
+                                content = fullMessage,
+                                messageId = nextMessageId
+                            )
+                                .messageId!!,
                         )
                     )
                 }
@@ -108,14 +123,13 @@ class OllamaService(
             }
     }
 
-    private fun createNewChatWithConversationId(request: ApiRequest) {
+    private fun createNewChatWithConversationId(request: ApiRequest): ChatHistory {
         log.info("Creating a new chat for conversationId=${request.conversationId}")
 
         chatService.createChat(request.question, request.conversationId)
         log.info("Chat created with title: ${request.question} for conversationId=${request.conversationId}")
 
-        chatService.saveMessage(request.conversationId, true, request.question)
-        log.info("User's initial message saved for conversationId=${request.conversationId}")
+        return chatService.saveMessage(request.conversationId, true, request.question)
     }
 
     private fun getPrompt(request: ApiRequest): Prompt {

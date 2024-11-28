@@ -1,12 +1,34 @@
 package ru.ogbozoyan.core.model
 
-import java.time.LocalDateTime
-import java.util.*
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
+import org.hibernate.annotations.ColumnDefault
+import org.hibernate.annotations.OnDelete
+import org.hibernate.annotations.OnDeleteAction
+import java.time.OffsetDateTime
 
-data class ChatHistory(
-    val messageId: Long?,
-    val chatId: UUID,
-    val isUser: Boolean,
-    val content: String,
-    val createdAt: LocalDateTime,
+@Entity
+@Table(name = "chat_history")
+open class ChatHistory(
+    @Id
+    @Column(name = "message_id", nullable = false)
+    open var messageId: Long? = null,
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "chat_id", nullable = false)
+    open var chat: Chat? = null,
+
+    @NotNull
+    @Column(name = "is_user", nullable = false)
+    open var isUser: Boolean? = false,
+
+    @NotNull
+    @Column(name = "content", nullable = false, length = Integer.MAX_VALUE)
+    open var content: String? = null,
+
+    @ColumnDefault("now()")
+    @Column(name = "created_at")
+    open var createdAt: OffsetDateTime? = null,
 )
