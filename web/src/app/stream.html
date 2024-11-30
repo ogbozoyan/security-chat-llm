@@ -3,157 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security chat</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Streaming Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #output {
+            white-space: pre-wrap;
+            background: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-height: 200px;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 h-screen flex flex-col">
-<div class="flex-1 overflow-y-auto p-4" id="chat-container">
-    <div id="chat-messages" class="space-y-4"></div>
-</div>
-<div class="p-4 bg-white">
-    <form id="chat-form">
-        <div class="flex space-x-4">
-            <input
-                    type="text"
-                    id="message-input"
-                    class="flex-1 border rounded p-2"
-                    placeholder="Type your message..."
-                    required>
-            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Send</button>
-        </div>
-    </form>
-</div>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const chatForm = document.getElementById('chat-form');
-        const messageInput = document.getElementById('message-input');
-        const chatMessages = document.getElementById('chat-messages');
-
-        chatForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const userMessage = messageInput.value.trim();
-            if (!userMessage) {
-                console.error('Message is empty');
-                return;
-            }
-
-            // Очистка инпута
-            messageInput.value = '';
-
-            // Отображение сообщения пользователя
-            appendMessage('You', userMessage, 'bg-blue-100');
-
-            // Контейнер для AI-ответа
-            const aiMessageContainer = appendMessage('AI', '...', 'bg-green-100', true);
-
-            try {
-                // Отправка POST-запроса и обработка стриминга
-                const response = await fetchStreamWithRetry('http://localhost:8080/api/v1/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        conversationId: "3fa85f64-5717-4562-b3fc-2c963f66afa6", // UUID пример
-                        question: userMessage
-                    }),
-                });
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let finalMessage = ''; // Для сборки полного сообщения
-
-                while (true) {
-                    const {value, done} = await reader.read();
-                    if (done) break;
-
-                    const chunk = decoder.decode(value, {stream: true});
-
-                    // Парсим JSON безопасно
-                    let json;
-                    try {
-                        json = JSON.parse(chunk);
-                    } catch (err) {
-                        console.error('Failed to parse chunk:', chunk, err);
-                        continue;
-                    }
-
-                    // Проверяем, есть ли поле content
-                    if (!json.content) {
-                        console.error('Missing content in response:', json);
-                        continue;
-                    }
-
-                    // Добавление части в финальное сообщение
-                    finalMessage += json.content;
-
-                    // Обновляем UI по частям
-                    updateMessage(aiMessageContainer, finalMessage);
-
-                    // Если это финальное сообщение, выделяем его
-                    if (json.isFinal) {
-                        markAsFinal(aiMessageContainer, json.messageId);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching AI response:', error);
-                updateMessage(aiMessageContainer, 'Error occurred while fetching the response.');
-            }
-
-            scrollToBottom();
-        });
-
-        // Добавление сообщения в чат
-        function appendMessage(sender, content, bgClass, isStreaming = false) {
-            const container = document.createElement('div');
-            container.className = `${bgClass} p-2 rounded`;
-            container.innerHTML = `<strong>${sender}:</strong> <span>${content}</span>`;
-            chatMessages.appendChild(container);
-
-            const messageElement = container.querySelector('span');
-            if (isStreaming) {
-                console.log('Message element for streaming:', messageElement);
-                return messageElement;
-            }
-            return null;
-        }
-
-        function updateMessage(messageElement, content) {
-            if (messageElement) {
-                console.log('Updating message element with:', content);
-                messageElement.textContent = content;
-            } else {
-                console.error('Message element is null or undefined');
-            }
-        }
-
-        // Выделение финального сообщения
-        function markAsFinal(messageElement, messageId) {
-            if (messageElement) {
-                messageElement.classList.add('font-bold');
-                messageElement.textContent += ` (Message ID: ${messageId})`;
-            } else {
-                console.error('Message element is null or undefined');
-            }
-        }
-
-        // Автоматический скролл вниз
-        function scrollToBottom() {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // Функция с повторными попытками
-        async function fetchStreamWithRetry(url, options, retries = 3) {
-            for (let i = 0; i < retries; i++) {
-                try {
-                    const response = await fetch(url, options);
-                    if (response.ok) return response;
-                } catch (error) {
-                    if (i === retries - 1) throw error;
-                }
-            }
-        }
-    });
-</script>
+<body>
+<h1>Streamed Content</h1>
+<div id="output">Connecting...</div>
+<script src="app.js"></script>
 </body>
 </html>
