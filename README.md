@@ -5,13 +5,15 @@ add
 OLTP https://medium.com/@yangli136/how-opentelemetry-is-integrated-with-spring-boot-application-7e309efc0011 https://spring.io/blog/2024/10/28/lets-use-opentelemetry-with-spring
 
 Implement RAG based on lectures of subject:
+
 1. Find related literature
 2. Convert to txt/pdf
 3. embed all of them
 
-
 # HOW TO:
-## Ollama: 
+
+## Ollama:
+
 ```yaml
 version: '3.8'
 services:
@@ -25,10 +27,11 @@ services:
       - "11434:11434"
     healthcheck:
       test: ollama --version || exit 1
-    entrypoint: [ "ollama run https://huggingface.co/segolilylabs/Lily-Cybersecurity-7B-v0.2-GGUF"]
+    entrypoint: [ "ollama run https://huggingface.co/segolilylabs/Lily-Cybersecurity-7B-v0.2-GGUF" ]
 ```
 
 ## PG vector store:
+
 ```yaml
 services:
   pgvector:

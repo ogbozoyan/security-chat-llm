@@ -7,11 +7,18 @@ import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import ru.ogbozoyan.core.service.ollama.OllamaService
+import reactor.core.publisher.Flux
+import ru.ogbozoyan.core.configuration.MOCK_USER_ID
+import ru.ogbozoyan.core.model.Chat
+import ru.ogbozoyan.core.model.ChatHistory
+import ru.ogbozoyan.core.service.chat.ChatService
 import ru.ogbozoyan.core.service.ingestion.FileTypeEnum
 import ru.ogbozoyan.core.service.ingestion.IngestionEvent
+import ru.ogbozoyan.core.service.ollama.OllamaService
 import ru.ogbozoyan.core.web.dto.ApiRequest
 import ru.ogbozoyan.core.web.dto.ApiResponse
+import ru.ogbozoyan.core.web.dto.StreamApiResponse
+import java.util.*
 
 
 @RestController
@@ -19,14 +26,18 @@ import ru.ogbozoyan.core.web.dto.ApiResponse
 @Tag(name = "Core API controller", description = "API")
 class CoreController(
     val publisher: ApplicationEventPublisher,
-    private val ollamaService: OllamaService
+    private val ollamaService: OllamaService,
+    private val chatService: ChatService
 ) : CoreApi {
 
     private val log = LoggerFactory.getLogger(CoreController::class.java)
 
-    override fun query(@RequestBody request: ApiRequest): ResponseEntity<ApiResponse> {
-        return ResponseEntity.ok(ollamaService.chat(request))
-    }
+    override fun query(@RequestBody request: ApiRequest): ResponseEntity<ApiResponse> =
+        ResponseEntity.ok(ollamaService.chat(request))
+
+
+    override fun streamMessages(@RequestBody request: ApiRequest): Flux<StreamApiResponse> =
+        ollamaService.chatStreaming(request)
 
     override fun embedFile(
         @RequestPart("file", required = true) file: MultipartFile,
@@ -41,4 +52,12 @@ class CoreController(
         }
     }
 
+    override fun getChatsByUser(): ResponseEntity<List<Chat>> =
+        ResponseEntity.ok(chatService.getChatsForUser(MOCK_USER_ID))
+
+    override fun getChatsMessagesByChatId(chatId: String): ResponseEntity<List<ChatHistory>> = ResponseEntity.ok(
+        chatService.getMessagesForChat(
+            UUID.fromString(chatId)
+        )
+    )
 }

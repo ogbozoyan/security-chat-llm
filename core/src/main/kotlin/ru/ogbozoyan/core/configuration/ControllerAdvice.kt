@@ -22,7 +22,7 @@ private const val RESOURCE_NOT_FOUND = "Resource not found"
 
 private const val UNEXPECTED_ERROR = "An unexpected error occurred"
 
-@RestControllerAdvice
+//@RestControllerAdvice
 class ControllerAdvice(
     private var headers: HttpHeaders = HttpHeaders()
 ) {
@@ -128,6 +128,7 @@ class ControllerAdvice(
                 req,
                 ex.javaClass.name
             )
+            log.error("ERROR ", ex)
             return ResponseEntity(errorMessage, headers, HttpStatus.INTERNAL_SERVER_ERROR)
         } catch (e: Exception) {
             return responseIfBrokenControllerAdvice(e, req, ex.javaClass.name)

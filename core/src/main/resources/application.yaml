@@ -77,3 +77,4 @@ logging:
           chat:
             client:
               advisor: debug
+debug: true
