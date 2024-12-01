@@ -15,7 +15,7 @@ open class ChatHistory(
     open var messageId: Long? = null,
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "chat_id", nullable = false)
     open var chat: Chat? = null,

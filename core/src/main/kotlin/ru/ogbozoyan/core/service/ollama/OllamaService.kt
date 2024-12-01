@@ -15,6 +15,7 @@ import ru.ogbozoyan.core.service.chat.ChatService
 import ru.ogbozoyan.core.web.dto.ApiRequest
 import ru.ogbozoyan.core.web.dto.ApiResponse
 import ru.ogbozoyan.core.web.dto.StreamApiResponse
+import java.util.concurrent.atomic.AtomicLong
 
 
 @Suppress("BlockingMethodInNonBlockingContext")
@@ -75,7 +76,7 @@ class OllamaService(
         }
 
         val nextMessageId = chatService.getNextMessageId()
-
+        val partId: AtomicLong = AtomicLong(0)
         return ollamaChat
             .prompt(getPrompt(request))
             .advisors { advisorSpec ->
@@ -89,6 +90,7 @@ class OllamaService(
                 messageAccumulator.append(part)
 
                 StreamApiResponse(
+                    id = partId.getAndIncrement(),
                     content = part,
                     isFinal = false,
                     messageId = nextMessageId,
@@ -104,6 +106,7 @@ class OllamaService(
 
                     Mono.just(
                         StreamApiResponse(
+                            id = partId.getAndIncrement(),
                             content = "Message saved successfully",
                             isFinal = true,
                             chatId = request.conversationId,
@@ -120,6 +123,7 @@ class OllamaService(
             )
             .doOnError { e ->
                 log.error("Error during streaming for conversationId=${request.conversationId}: ${e.message}", e)
+                throw e
             }
     }
 

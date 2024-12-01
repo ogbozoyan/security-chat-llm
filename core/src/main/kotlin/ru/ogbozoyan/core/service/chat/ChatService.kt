@@ -70,4 +70,8 @@ class ChatService(
     fun getNextMessageId(): Long =
         entityManager.createNativeQuery("SELECT nextval('chat_history_message_id_seq')").singleResult as Long
 
+    fun getChatsForUser(mockUserId: String): List<Chat> =
+        chatRepository.findByUserId(mockUserId)
+
+
 }
