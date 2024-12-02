@@ -15,9 +15,7 @@ import ru.ogbozoyan.core.service.chat.ChatService
 import ru.ogbozoyan.core.service.ingestion.FileTypeEnum
 import ru.ogbozoyan.core.service.ingestion.IngestionEvent
 import ru.ogbozoyan.core.service.ollama.OllamaService
-import ru.ogbozoyan.core.web.dto.ApiRequest
-import ru.ogbozoyan.core.web.dto.ApiResponse
-import ru.ogbozoyan.core.web.dto.StreamApiResponse
+import ru.ogbozoyan.core.web.dto.*
 import java.util.*
 
 
@@ -60,4 +58,10 @@ class CoreController(
             UUID.fromString(chatId)
         )
     )
+
+    override fun createChat(@RequestBody request: CreateChatRequest): ChatCreateResponse {
+        log.info("Creating new chat user: ${request.userId}")
+        val chat = chatService.createChat(request.title, UUID.randomUUID())
+        return ChatCreateResponse(chatId = chat.chatId!!, title = chat.title!!)
+    }
 }

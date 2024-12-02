@@ -11,9 +11,7 @@ import ru.ogbozoyan.core.configuration.MOCK_USER_ID
 import ru.ogbozoyan.core.model.Chat
 import ru.ogbozoyan.core.model.ChatHistory
 import ru.ogbozoyan.core.service.ingestion.FileTypeEnum
-import ru.ogbozoyan.core.web.dto.ApiRequest
-import ru.ogbozoyan.core.web.dto.ApiResponse
-import ru.ogbozoyan.core.web.dto.StreamApiResponse
+import ru.ogbozoyan.core.web.dto.*
 
 interface CoreApi {
     @PostMapping(
@@ -62,4 +60,12 @@ interface CoreApi {
     )
     @ResponseStatus(HttpStatus.OK)
     fun getChatsMessagesByChatId(@PathVariable(value = "chatId") chatId: String): ResponseEntity<List<ChatHistory>>
+
+    @PostMapping("/api/v1/chat/create")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(
+        summary = "Create new chat",
+        description = "Create new chat"
+    )
+    fun createChat(request: CreateChatRequest): ChatCreateResponse
 }
