@@ -18,7 +18,6 @@ import ru.ogbozoyan.core.web.dto.StreamApiResponse
 import java.util.concurrent.atomic.AtomicLong
 
 
-@Suppress("BlockingMethodInNonBlockingContext")
 @Service
 class OllamaService(
     @Qualifier("ollamaClient") private val ollamaChat: ChatClient,
@@ -63,6 +62,7 @@ class OllamaService(
         }
     }
 
+    @Suppress("LoggingStringTemplateAsArgument")
     fun chatStreaming(request: ApiRequest): Flux<StreamApiResponse> {
         val messageAccumulator = StringBuilder()
 
@@ -76,7 +76,7 @@ class OllamaService(
         }
 
         val nextMessageId = chatService.getNextMessageId()
-        val partId: AtomicLong = AtomicLong(0)
+        val partOrder = AtomicLong(0)
         return ollamaChat
             .prompt(getPrompt(request))
             .advisors { advisorSpec ->
@@ -90,7 +90,7 @@ class OllamaService(
                 messageAccumulator.append(part)
 
                 StreamApiResponse(
-                    id = partId.getAndIncrement(),
+                    partOrder = partOrder.getAndIncrement(),
                     content = part,
                     isFinal = false,
                     messageId = nextMessageId,
@@ -102,11 +102,11 @@ class OllamaService(
 
                     val fullMessage = messageAccumulator.toString()
 
-                    log.info("Full message saved with messageId=$nextMessageId for conversationId=${request.conversationId}")
+                    log.debug("Full message saved with messageId=$nextMessageId for conversationId=${request.conversationId}")
 
                     Mono.just(
                         StreamApiResponse(
-                            id = partId.getAndIncrement(),
+                            partOrder = partOrder.getAndIncrement(),
                             content = "Message saved successfully",
                             isFinal = true,
                             chatId = request.conversationId,
