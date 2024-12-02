@@ -34,7 +34,8 @@ class AiModelConfiguration(
 
         val chatMemoryAdvisor =
             VectorStoreChatMemoryAdvisor.builder(vectorStore).withOrder(Ordered.HIGHEST_PRECEDENCE + 200)
-                .withChatMemoryRetrieveSize(CHAT_MEMORY_SIZE).withConversationId(DEFAULT_CHAT_MEMORY_CONVERSATION_ID)
+                .withChatMemoryRetrieveSize(CHAT_MEMORY_SIZE)
+                .withConversationId(DEFAULT_CHAT_MEMORY_CONVERSATION_ID)
                 .build()
 
         val documentRetriever: VectorStoreDocumentRetriever = VectorStoreDocumentRetriever.builder()
@@ -45,7 +46,7 @@ class AiModelConfiguration(
 
         val retrievalAugmentationAdvisor =
             RetrievalAugmentationAdvisor.builder().documentRetriever(documentRetriever).queryAugmenter(queryAugmenter)
-                .order(Ordered.HIGHEST_PRECEDENCE + 100).build()
+                .order(Ordered.HIGHEST_PRECEDENCE + 10).build()
 
         val simpleLoggerAdvisor = SimpleLoggerAdvisor(
             advisedRequestToString(), DEFAULT_RESPONSE_TO_STRING, Ordered.HIGHEST_PRECEDENCE

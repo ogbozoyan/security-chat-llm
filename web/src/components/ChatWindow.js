@@ -8,6 +8,8 @@ const ChatWindow = ({chatId}) => {
     const [stompClient, setStompClient] = useState(null);
     const [messageInput, setMessageInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [fileType, setFileType] = useState('');
     const messagesEndRef = useRef(null);
 
     useEffect(() => {
@@ -90,10 +92,66 @@ const ChatWindow = ({chatId}) => {
         }
     };
 
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        setSelectedFile(file);
+
+        if (file) {
+            const extension = file.name.split('.').pop().toLowerCase();
+            let type;
+
+            switch (extension) {
+                case 'pdf':
+                    type = 'PDF';
+                    break;
+                case 'txt':
+                    type = 'TXT';
+                    break;
+                case 'md':
+                    type = 'MD';
+                    break;
+                default:
+                    type = 'TXT';
+            }
+
+            setFileType(type);
+        }
+    };
+
+    const handleFileUpload = async () => {
+        if (!selectedFile) return;
+
+        setIsTyping(true);
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('type', fileType);
+        formData.append('chatId', chatId);
+
+        try {
+            await axios.post('http://localhost:8080/api/v1/embed-file', formData, {
+                headers: {'Content-Type': 'multipart/form-data'},
+            });
+
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                {content: selectedFile.name, isUser: true, type: fileType},
+            ]);
+        } catch (error) {
+            console.error('Error uploading file:', error);
+        } finally {
+            setSelectedFile(null);
+            setIsTyping(false);
+            setTimeout(() => {
+                setIsTyping(false);
+            }, 1000); // Разблокируем ввод через 2 секунды
+        }
+    };
+
     return (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div style={{flex: 1, display: 'flex', flexDirection: 'column', height: '100%'}}>
             <h2>Chat: {chatId}</h2>
-            <div style={{ flex: 1, overflowY: 'auto' }}>
+            <div style={{flex: 1, overflowY: 'auto'}}>
                 {messages.map((message, index) => (
                     <div
                         key={index}
@@ -103,45 +161,67 @@ const ChatWindow = ({chatId}) => {
                             textAlign: message.isUser ? 'right' : 'left',
                         }}
                     >
-                        <strong>{message.isUser ? 'You' : 'Bot'}:</strong> {message.content}
+                        <strong>{message.isUser ? 'You' : 'Bot'}:</strong>{' '}
+                        {message.type === 'PDF' || message.type === 'PLAIN' ? (
+                            <span>
+                                <i className="fa fa-file" aria-hidden="true"></i> {message.content}
+                            </span>
+                        ) : (
+                            message.content
+                        )}
                     </div>
                 ))}
                 {isTyping && (
-                    <div style={{ color: 'gray', fontStyle: 'italic', marginTop: '10px' }}>
+                    <div style={{color: 'gray', fontStyle: 'italic', marginTop: '10px'}}>
                         Generating...
                     </div>
                 )}
-                <div ref={messagesEndRef} />
+                <div ref={messagesEndRef}/>
             </div>
-            {/* Ввод текста и кнопка отправки */}
-            <div style={{ display: 'flex', alignItems: 'center', marginTop: '10px', gap: '10px' }}>
+            <div>
+                <div style={{display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
+                    <input
+                        type="file"
+                        onChange={handleFileChange}
+                        disabled={isTyping}
+                        style={{flex: 1, marginRight: '10px'}}
+                    />
+                    <button
+                        onClick={handleFileUpload}
+                        style={{
+                            padding: '10px',
+                            background: selectedFile ? 'yellow' : '#ccc',
+                            cursor: selectedFile ? 'pointer' : 'not-allowed',
+                        }}
+                        disabled={!selectedFile || isTyping}
+                    >
+                        Upload
+                    </button>
+                </div>
                 <input
                     type="text"
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                     placeholder="Type a message..."
-                    style={{
-                        flex: 1,
-                        padding: '10px',
-                    }}
                     disabled={isTyping}
+                    style={{width: '100%', padding: '10px', marginTop: '10px'}}
                 />
-                <button
-                    onClick={handleSendMessage}
-                    style={{
-                        padding: '10px 20px',
-                        background: isTyping ? '#ccc' : 'yellow',
-                        cursor: isTyping ? 'not-allowed' : 'pointer',
-                        border: 'none',
-                    }}
-                    disabled={isTyping}
-                >
-                    Send
-                </button>
+                {!isTyping && (
+                    <button
+                        onClick={handleSendMessage}
+                        style={{
+                            width: '100%',
+                            padding: '10px',
+                            marginTop: '10px',
+                            background: 'yellow',
+                        }}
+                    >
+                        Send
+                    </button>
+                )}
             </div>
         </div>
     );
-
 };
 
 export default ChatWindow;
