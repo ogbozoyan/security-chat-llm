@@ -5,6 +5,7 @@ import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
+import ru.ogbozoyan.core.model.ContentTypeEnum
 
 @Component
 class IngestionEventListener(
@@ -20,21 +21,23 @@ class IngestionEventListener(
             log.info("Processing event: ${event.fileName}")
 
             when (event.type) {
-                FileTypeEnum.PDF -> {
+                ContentTypeEnum.PDF -> {
                     log.info("PDF processing event: $event")
-                    vectorStore.saveNewPDFAsync(event.resource, event.fileName)
+                    vectorStore.saveNewPDFAsync(event.resource, event.fileName, event.chatId)
                 }
 
-                FileTypeEnum.TXT -> {
+                ContentTypeEnum.TXT -> {
                     log.info("TXT processing event: $event")
-                    vectorStore.saveNewTextAsync(event.resource, event.fileName)
+                    vectorStore.saveNewTextAsync(event.resource, event.fileName, event.chatId)
 
                 }
 
-                FileTypeEnum.MD -> {
+                ContentTypeEnum.MD -> {
                     log.info("MD processing event: $event")
-                    vectorStore.saveNewTextAsync(event.resource, event.fileName)
+                    vectorStore.saveNewTextAsync(event.resource, event.fileName, event.chatId)
                 }
+
+                ContentTypeEnum.PLAIN -> {}
             }
         }
     }

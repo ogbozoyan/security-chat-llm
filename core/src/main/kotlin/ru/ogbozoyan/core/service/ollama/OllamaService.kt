@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import ru.ogbozoyan.core.model.ChatHistory
 import ru.ogbozoyan.core.service.chat.ChatService
 import ru.ogbozoyan.core.web.dto.ApiRequest
 import ru.ogbozoyan.core.web.dto.ApiResponse
@@ -23,26 +22,15 @@ class OllamaService(
     @Qualifier("ollamaClient") private val ollamaChat: ChatClient,
     private val chatService: ChatService,
 ) {
-    private val log: Logger = LoggerFactory.getLogger(javaClass.simpleName)
+    private val log: Logger = LoggerFactory.getLogger(OllamaService::class.java)
 
     fun chat(request: ApiRequest): ApiResponse {
         try {
-            val chatHistory = chatService.getMessagesForChat(request.conversationId)
-            log.info("Fetched chat history for conversationId=${request.conversationId}. Message count: ${chatHistory.size}")
 
-
-            if (chatHistory.isEmpty()) {
-                createNewChatWithConversationId(request)
-            } else {
-                chatService.saveMessage(request.conversationId, true, request.question)
-            }
+            chatService.preInitChatHistoryIfNotExists(request)
 
             val responseContent =
-                ollamaChat
-                    .prompt(getPrompt(request))
-                    .advisors { advisorSpec ->
-                        advisorSpec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, request.conversationId)
-                    }
+                chatClientRequest(request)
                     .call()
                     .content()
 
@@ -62,26 +50,16 @@ class OllamaService(
         }
     }
 
-    @Suppress("LoggingStringTemplateAsArgument")
+    @Suppress("LoggingStringTemplateAsArgument", "BlockingMethodInNonBlockingContext")
     fun chatStreaming(request: ApiRequest): Flux<StreamApiResponse> {
-        val messageAccumulator = StringBuilder()
 
-        val chatHistory = chatService.getMessagesForChat(request.conversationId)
-        log.info("Fetched chat history for conversationId=${request.conversationId}. Message count: ${chatHistory.size}")
-
-        if (chatHistory.isEmpty()) {
-            createNewChatWithConversationId(request)
-        } else {
-            chatService.saveMessage(request.conversationId, true, request.question)
-        }
+        chatService.preInitChatHistoryIfNotExists(request)
 
         val nextMessageId = chatService.getNextMessageId()
         val partOrder = AtomicLong(0)
-        return ollamaChat
-            .prompt(getPrompt(request))
-            .advisors { advisorSpec ->
-                advisorSpec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, request.conversationId)
-            }
+        val messageAccumulator = StringBuilder()
+
+        return chatClientRequest(request)
             .stream()
             .content()
             .map { part ->
@@ -127,14 +105,11 @@ class OllamaService(
             }
     }
 
-    private fun createNewChatWithConversationId(request: ApiRequest): ChatHistory {
-        log.info("Creating a new chat for conversationId=${request.conversationId}")
-
-        chatService.createChat(request.question, request.conversationId)
-        log.info("Chat created with title: ${request.question} for conversationId=${request.conversationId}")
-
-        return chatService.saveMessage(request.conversationId, true, request.question)
-    }
+    private fun chatClientRequest(request: ApiRequest) = ollamaChat
+        .prompt(getPrompt(request))
+        .advisors { advisorSpec ->
+            advisorSpec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, request.conversationId)
+        }
 
     private fun getPrompt(request: ApiRequest): Prompt {
         log.info("Generating prompt for user query: ${request.question}")
