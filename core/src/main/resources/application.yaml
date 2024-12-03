@@ -20,7 +20,7 @@ spring:
       embedding:
         options:
           model: ${AI_OLLAMA_EMBEDDING_OPTIONS_MODEL:mxbai-embed-large:latest}
-          max-tokens: -2
+#          max-tokens: -1
       chat:
         options:
           model: ${OLLAMA_CHAT_MODEL:llama3.2:3b}
@@ -77,3 +77,4 @@ logging:
           chat:
             client:
               advisor: debug
+debug: true

@@ -7,12 +7,10 @@ import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor.DEFAULT_RESPONSE_TO_STRING
 import org.springframework.ai.chat.client.advisor.VectorStoreChatMemoryAdvisor
 import org.springframework.ai.chat.client.advisor.api.AdvisedRequest
-import org.springframework.ai.embedding.EmbeddingModel
 import org.springframework.ai.ollama.api.OllamaOptions
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever
-import org.springframework.ai.vectorstore.SimpleVectorStore
-import org.springframework.ai.vectorstore.VectorStore
+import org.springframework.ai.vectorstore.PgVectorStore
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -23,7 +21,7 @@ import org.springframework.core.io.Resource
 @Configuration
 class AiModelConfiguration(
     private val chatClientBuilder: ChatClient.Builder,
-    private val vectorStore: VectorStore,
+    private val vectorStore: PgVectorStore,
     @Value("classpath:/prompts/system-message-ru.st") private val systemMessage: Resource,
 ) {
 
@@ -57,10 +55,10 @@ class AiModelConfiguration(
             .build()
     }
 
-    @Bean
-    fun simpleVectorStore(embeddingModel: EmbeddingModel): VectorStore {
-        return SimpleVectorStore(embeddingModel)
-    }
+//    @Bean
+//    fun pgVectorStore(jdbcTemplate: JdbcTemplate, embeddingModel: OllamaEmbeddingModel): VectorStore {
+//        return PgVectorStore.Builder(jdbcTemplate, embeddingModel).build()
+//    }
 
     private fun advisedRequestToString() = { req: AdvisedRequest ->
 

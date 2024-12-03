@@ -23,19 +23,16 @@ class IngestionService(
     private val chatService: ChatService
 ) {
 
-    private val CHUNK_SIZE = 500
-
     private val log: Logger = LoggerFactory.getLogger(IngestionService::class.java)
 
     suspend fun saveNewPDFAsync(pdf: Resource, fName: String?, chatId: UUID?) {
         val fileName = fName ?: "${UUID.randomUUID()}.pdf"
-        val textSplitter = TokenTextSplitter.builder()
-            .withChunkSize(CHUNK_SIZE)
-            .build()
+        val textSplitter = tokenTextSplitter()
 
         try {
             log.info("Loading {} Reference PDF into Vector Store", fileName)
             val config = PdfDocumentReaderConfig.builder()
+                .withPagesPerDocument(1)
                 .withPageExtractedTextFormatter(ExtractedTextFormatter.builder().build())
                 .build()
 
@@ -63,9 +60,7 @@ class IngestionService(
     suspend fun saveNewTextAsync(txt: Resource, fName: String?, chatId: UUID? = null) {
 
         val fileName = fName ?: "${UUID.randomUUID()}.txt"
-        val textSplitter = TokenTextSplitter.builder()
-            .withChunkSize(CHUNK_SIZE)
-            .build()
+        val textSplitter = tokenTextSplitter()
 
         try {
             log.info("Loading {} .txt/md files as Documents", fileName)
@@ -104,7 +99,6 @@ class IngestionService(
             )
         }
 
-
     private fun enrichWithFileName(
         documents: List<Document>,
         fileName: String,
@@ -117,5 +111,11 @@ class IngestionService(
         }
         return documents
     }
+
+    private fun tokenTextSplitter(): TokenTextSplitter =
+        TokenTextSplitter.builder()
+            .withChunkSize(100)
+            .withMinChunkSizeChars(50)
+            .build()
 
 }
