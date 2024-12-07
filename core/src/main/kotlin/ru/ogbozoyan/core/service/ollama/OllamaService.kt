@@ -4,6 +4,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY
+import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_RETRIEVE_SIZE_KEY
 import org.springframework.ai.chat.messages.UserMessage
 import org.springframework.ai.chat.prompt.Prompt
 import org.springframework.beans.factory.annotation.Qualifier
@@ -109,6 +110,7 @@ class OllamaService(
         .prompt(getPrompt(request))
         .advisors { advisorSpec ->
             advisorSpec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, request.conversationId)
+            advisorSpec.param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10)
         }
 
     private fun getPrompt(request: ApiRequest): Prompt {

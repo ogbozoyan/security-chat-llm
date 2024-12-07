@@ -11,6 +11,7 @@ const ChatWindow = ({chatId}) => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [fileType, setFileType] = useState('');
     const messagesEndRef = useRef(null);
+    const receivedParts = useRef(new Set()); // Track received parts to prevent duplicates
 
     useEffect(() => {
         if (!chatId) return;
@@ -35,9 +36,16 @@ const ChatWindow = ({chatId}) => {
                 const newMessage = JSON.parse(message.body);
 
                 if (newMessage.content === 'Message saved successfully') {
+                    receivedParts.current.clear();
                     setIsTyping(false);
                     return;
                 }
+
+                if (receivedParts.current.has(newMessage.partOrder)) {
+                    return;
+                }
+                receivedParts.current.add(newMessage.partOrder);
+
 
                 setMessages((prevMessages) => {
                     const lastMessage = prevMessages[prevMessages.length - 1];

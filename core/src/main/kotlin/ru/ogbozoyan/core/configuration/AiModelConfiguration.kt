@@ -1,11 +1,10 @@
 package ru.ogbozoyan.core.configuration
 
 import org.springframework.ai.chat.client.ChatClient
-import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.DEFAULT_CHAT_MEMORY_CONVERSATION_ID
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor
 import org.springframework.ai.chat.client.advisor.RetrievalAugmentationAdvisor
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor.DEFAULT_RESPONSE_TO_STRING
-import org.springframework.ai.chat.client.advisor.VectorStoreChatMemoryAdvisor
 import org.springframework.ai.chat.client.advisor.api.AdvisedRequest
 import org.springframework.ai.ollama.api.OllamaOptions
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter
@@ -16,6 +15,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
 import org.springframework.core.io.Resource
+import org.springframework.jdbc.core.JdbcTemplate
 
 
 @Configuration
@@ -28,37 +28,61 @@ class AiModelConfiguration(
     private val CHAT_MEMORY_SIZE = 10
 
     @Bean
-    fun ollamaClient(): ChatClient {
+    fun ollamaClient(jdbcTemplate: JdbcTemplate): ChatClient {
+
+        //        val questionAnswerAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
+        //            .build()
+
+        //        val chatMemoryAdvisor =
+        //            VectorStoreChatMemoryAdvisor.builder(vectorStore)
+        //                .withChatMemoryRetrieveSize(CHAT_MEMORY_SIZE)
+        //                .withConversationId(DEFAULT_CHAT_MEMORY_CONVERSATION_ID)
+        //                .build()
 
         val chatMemoryAdvisor =
-            VectorStoreChatMemoryAdvisor.builder(vectorStore).withOrder(Ordered.HIGHEST_PRECEDENCE + 200)
-                .withChatMemoryRetrieveSize(CHAT_MEMORY_SIZE)
-                .withConversationId(DEFAULT_CHAT_MEMORY_CONVERSATION_ID)
-                .build()
+            MessageChatMemoryAdvisor(pgChatMemory(jdbcTemplate), MOCK_CONVERSATION_ID, CHAT_MEMORY_SIZE)
 
         val documentRetriever: VectorStoreDocumentRetriever = VectorStoreDocumentRetriever.builder()
-            .vectorStore(vectorStore).similarityThreshold(0.5).topK(5)
+            .vectorStore(vectorStore)
+            .similarityThreshold(0.5)
+            .topK(5)
             .build()
 
-        val queryAugmenter = ContextualQueryAugmenter.builder().allowEmptyContext(true).build()
+        val queryAugmenter = ContextualQueryAugmenter.builder()
+            .allowEmptyContext(true)
+            .build()
 
         val retrievalAugmentationAdvisor =
-            RetrievalAugmentationAdvisor.builder().documentRetriever(documentRetriever).queryAugmenter(queryAugmenter)
-                .order(Ordered.HIGHEST_PRECEDENCE + 10).build()
+            RetrievalAugmentationAdvisor.builder()
+                .documentRetriever(documentRetriever)
+//                .queryAugmenter(queryAugmenter)
+                .order(chatMemoryAdvisor.order+100)
+                .build()
 
         val simpleLoggerAdvisor = SimpleLoggerAdvisor(
             advisedRequestToString(), DEFAULT_RESPONSE_TO_STRING, Ordered.HIGHEST_PRECEDENCE
         )
 
         return chatClientBuilder.defaultSystem(systemMessage)
-            .defaultAdvisors(chatMemoryAdvisor, simpleLoggerAdvisor, retrievalAugmentationAdvisor)
+            .defaultAdvisors(
+                chatMemoryAdvisor,
+                simpleLoggerAdvisor,
+                retrievalAugmentationAdvisor, /*questionAnswerAdvisor*/
+            )
             .build()
     }
 
-//    @Bean
-//    fun pgVectorStore(jdbcTemplate: JdbcTemplate, embeddingModel: OllamaEmbeddingModel): VectorStore {
-//        return PgVectorStore.Builder(jdbcTemplate, embeddingModel).build()
-//    }
+    @Bean
+    fun pgChatMemory(jdbcTemplate: JdbcTemplate): PgVectorChatMemory {
+        return PgVectorChatMemory
+            .create(
+                PgVectorChatMemoryConfig
+                    .builder()
+                    .withJdbcTemplate(jdbcTemplate)
+                    .withInitializeSchema(true)
+                    .build()
+            )
+    }
 
     private fun advisedRequestToString() = { req: AdvisedRequest ->
 

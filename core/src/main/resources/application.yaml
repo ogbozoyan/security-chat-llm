@@ -19,18 +19,19 @@ spring:
       base-url: ${OLLAMA_BASE_URL:http://localhost:11434/}
       embedding:
         options:
-          model: ${AI_OLLAMA_EMBEDDING_OPTIONS_MODEL:mxbai-embed-large:latest}
-#          max-tokens: -1
+          model: ${AI_OLLAMA_EMBEDDING_OPTIONS_MODEL:nomic-embed-text:latest}
       chat:
         options:
-          model: ${OLLAMA_CHAT_MODEL:llama3.2:3b}
+#          model: ${OLLAMA_CHAT_MODEL:llama3.2:3b}
+          model: ${OLLAMA_CHAT_MODEL:llama3.1:latest}
+#          model: ${OLLAMA_CHAT_MODEL:gemma2:latest}
           temperature: ${OLLAMA_CHAT_TEMPERATURE:0.5}
       vectorstore:
         pgvector:
           initialize-schema: true
           index-type: HNSW
           distance-type: COSINE_DISTANCE
-          dimensions: 1024
+          dimensions: 768
   management:
     endpoints:
       web:
@@ -77,4 +78,5 @@ logging:
           chat:
             client:
               advisor: debug
+
 debug: true

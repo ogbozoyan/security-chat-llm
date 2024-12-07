@@ -107,7 +107,7 @@ class IngestionService(
 
         for (document: Document in documents) {
             document.metadata["file_name"] = fileName
-            chatId?.let { document.metadata["chat_memory_conversation_id"] = it }
+//            chatId?.let { document.metadata["chat_memory_conversation_id"] = it }
         }
         return documents
     }
