@@ -2,6 +2,7 @@ package ru.ogbozoyan.core.service.ingestion
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY
 import org.springframework.ai.document.Document
 import org.springframework.ai.reader.ExtractedTextFormatter
 import org.springframework.ai.reader.TextReader
@@ -11,35 +12,36 @@ import org.springframework.ai.transformer.splitter.TokenTextSplitter
 import org.springframework.ai.vectorstore.VectorStore
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
+import ru.ogbozoyan.core.model.ContentTypeEnum
+import ru.ogbozoyan.core.service.chat.ChatService
 import java.nio.charset.Charset
 import java.util.*
 
 
 @Service
 class IngestionService(
-    private val vectorStore: VectorStore
+    private val vectorStore: VectorStore,
+    private val chatService: ChatService
 ) {
-
-    private val CHUNK_SIZE = 500
 
     private val log: Logger = LoggerFactory.getLogger(IngestionService::class.java)
 
-    suspend fun saveNewPDFAsync(pdf: Resource, fName: String?) {
+    suspend fun saveNewPDFAsync(pdf: Resource, fName: String?, chatId: UUID?) {
         val fileName = fName ?: "${UUID.randomUUID()}.pdf"
-        val textSplitter = TokenTextSplitter.builder()
-            .withChunkSize(CHUNK_SIZE)
-            .build()
+        val textSplitter = tokenTextSplitter()
 
         try {
             log.info("Loading {} Reference PDF into Vector Store", fileName)
             val config = PdfDocumentReaderConfig.builder()
+                .withPagesPerDocument(1)
                 .withPageExtractedTextFormatter(ExtractedTextFormatter.builder().build())
                 .build()
 
             val pagePdfDocumentReader = PagePdfDocumentReader(pdf, config)
             val documents = pagePdfDocumentReader.get()
 
-            enrichWithFileName(documents, fileName)
+            enrichWithFileName(documents, fileName, chatId)
+            saveFileToChatHistory(chatId, fileName, ContentTypeEnum.PDF)
 
             vectorStore.add(textSplitter.apply(documents))
             log.info("Successfully loaded Vector Store by {}", fileName)
@@ -56,12 +58,10 @@ class IngestionService(
         }
     }
 
-    suspend fun saveNewTextAsync(txt: Resource, fName: String?) {
+    suspend fun saveNewTextAsync(txt: Resource, fName: String?, chatId: UUID? = null) {
 
         val fileName = fName ?: "${UUID.randomUUID()}.txt"
-        val textSplitter = TokenTextSplitter.builder()
-            .withChunkSize(CHUNK_SIZE)
-            .build()
+        val textSplitter = tokenTextSplitter()
 
         try {
             log.info("Loading {} .txt/md files as Documents", fileName)
@@ -69,7 +69,8 @@ class IngestionService(
             textReader.charset = Charset.defaultCharset()
             val documents = textReader.get()
 
-            enrichWithFileName(documents, fileName)
+            enrichWithFileName(documents, fileName, chatId)
+            saveFileToChatHistory(chatId, fileName, ContentTypeEnum.TXT)
 
             log.info("Creating and storing Embeddings from Documents")
             vectorStore.accept(textSplitter.split(documents))
@@ -88,15 +89,34 @@ class IngestionService(
         }
     }
 
+    private fun saveFileToChatHistory(chatId: UUID?, fileName: String, contentType: ContentTypeEnum) =
+        chatId?.let {
+            chatService.saveMessage(
+                it,
+                true,
+                fileName,
+                chatService.getNextMessageId(),
+                contentTypeEnum = contentType,
+            )
+        }
+
     private fun enrichWithFileName(
         documents: List<Document>,
-        fileName: String
+        fileName: String,
+        chatId: UUID? = null
     ): List<Document> {
 
         for (document: Document in documents) {
             document.metadata["file_name"] = fileName
+            chatId?.let { document.metadata[CHAT_MEMORY_CONVERSATION_ID_KEY] = it }
         }
         return documents
     }
+
+    private fun tokenTextSplitter(): TokenTextSplitter =
+        TokenTextSplitter.builder()
+            .withChunkSize(100)
+            .withMinChunkSizeChars(50)
+            .build()
 
 }

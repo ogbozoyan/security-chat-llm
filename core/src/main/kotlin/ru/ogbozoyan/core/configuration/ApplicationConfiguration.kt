@@ -16,6 +16,7 @@ import java.time.Duration
 import java.util.concurrent.Executor
 
 const val MOCK_USER_ID: String = "MOCK_USER_ID"
+const val MOCK_CONVERSATION_ID: String = "48e05fa2-1463-4d17-8836-8e214751d5a1"
 
 @Configuration
 @EnableScheduling

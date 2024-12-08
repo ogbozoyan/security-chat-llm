@@ -11,8 +11,8 @@ import reactor.core.publisher.Flux
 import ru.ogbozoyan.core.configuration.MOCK_USER_ID
 import ru.ogbozoyan.core.model.Chat
 import ru.ogbozoyan.core.model.ChatHistory
+import ru.ogbozoyan.core.model.ContentTypeEnum
 import ru.ogbozoyan.core.service.chat.ChatService
-import ru.ogbozoyan.core.service.ingestion.FileTypeEnum
 import ru.ogbozoyan.core.service.ingestion.IngestionEvent
 import ru.ogbozoyan.core.service.ollama.OllamaService
 import ru.ogbozoyan.core.web.dto.*
@@ -39,12 +39,13 @@ class CoreController(
 
     override fun embedFile(
         @RequestPart("file", required = true) file: MultipartFile,
-        @RequestParam("type", required = true) type: FileTypeEnum
+        @RequestParam("type", required = true) type: ContentTypeEnum,
+        @RequestParam("chatId", required = true) chatId: UUID,
     ) {
         return try {
             log.info("Event triggered via REST endpoint for file: ${file.originalFilename} with type: $type")
             val byteArrayResource = ByteArrayResource(file.bytes)
-            publisher.publishEvent(IngestionEvent(byteArrayResource, type, file.originalFilename))
+            publisher.publishEvent(IngestionEvent(byteArrayResource, type, file.originalFilename, chatId))
         } catch (e: Exception) {
             log.error("Error triggering event: {}", e.message)
         }

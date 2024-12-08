@@ -10,8 +10,9 @@ import reactor.core.publisher.Flux
 import ru.ogbozoyan.core.configuration.MOCK_USER_ID
 import ru.ogbozoyan.core.model.Chat
 import ru.ogbozoyan.core.model.ChatHistory
-import ru.ogbozoyan.core.service.ingestion.FileTypeEnum
+import ru.ogbozoyan.core.model.ContentTypeEnum
 import ru.ogbozoyan.core.web.dto.*
+import java.util.*
 
 interface CoreApi {
     @PostMapping(
@@ -28,8 +29,8 @@ interface CoreApi {
         consumes = [MediaType.MULTIPART_FORM_DATA_VALUE]
     )
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Ask question to llm and save chat", description = "Returns the result")
-    fun embedFile(file: MultipartFile, type: FileTypeEnum)
+    @Operation(summary = "Send file to embed and save for specific chat", description = "Returns the result")
+    fun embedFile(file: MultipartFile, type: ContentTypeEnum, chatId: UUID)
 
     @PostMapping(
         "/api/v1/chat",

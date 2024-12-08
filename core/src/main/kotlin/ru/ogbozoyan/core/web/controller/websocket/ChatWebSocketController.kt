@@ -6,6 +6,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Controller
 import ru.ogbozoyan.core.service.ollama.OllamaService
 import ru.ogbozoyan.core.web.dto.ApiRequest
+import ru.ogbozoyan.core.web.dto.StreamApiResponse
 
 
 @Controller
@@ -28,7 +29,17 @@ class ChatWebSocketController(
             }
             .doOnError { error ->
                 log.error("Error during chatStreaming: ${error.message}", error)
-                throw error
+                messagingTemplate.convertAndSend(
+                    "/topic/messages/${request.conversationId}",
+                    StreamApiResponse(
+                        Long.MAX_VALUE,
+                        "Error while generating response, please try again",
+                        true,
+                        Long.MAX_VALUE,
+                        chatId = request.conversationId
+                    )
+
+                )
             }
             .subscribe()
     }

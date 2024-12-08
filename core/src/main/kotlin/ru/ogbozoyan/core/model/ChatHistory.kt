@@ -28,6 +28,11 @@ open class ChatHistory(
     @Column(name = "content", nullable = false, length = Integer.MAX_VALUE)
     open var content: String? = null,
 
+    @Column(name = "content_type", nullable = false, length = Integer.MAX_VALUE)
+    @Enumerated(EnumType.STRING)
+    @ColumnDefault("PLAIN")
+    open var contentType: ContentTypeEnum? = null,
+
     @ColumnDefault("now()")
     @Column(name = "created_at")
     open var createdAt: OffsetDateTime? = null,
