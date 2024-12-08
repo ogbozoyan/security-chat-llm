@@ -1,4 +1,4 @@
-package ru.ogbozoyan.core.configuration;
+package ru.ogbozoyan.core;
 
 
 import org.springframework.ai.chat.memory.ChatMemory;

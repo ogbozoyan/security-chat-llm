@@ -1,87 +1,67 @@
-package ru.ogbozoyan.core.configuration
+package ru.ogbozoyan.core.configuration.ai
 
 import org.springframework.ai.chat.client.ChatClient
-import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor
-import org.springframework.ai.chat.client.advisor.RetrievalAugmentationAdvisor
+import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor.DEFAULT_RESPONSE_TO_STRING
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor.HIGHEST_PRECEDENCE
 import org.springframework.ai.chat.client.advisor.api.AdvisedRequest
 import org.springframework.ai.ollama.api.OllamaOptions
-import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter
-import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever
-import org.springframework.ai.vectorstore.PgVectorStore
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
 import org.springframework.core.io.Resource
 import org.springframework.jdbc.core.JdbcTemplate
+import ru.ogbozoyan.core.PgVectorChatMemory
+import ru.ogbozoyan.core.PgVectorChatMemoryConfig
+import ru.ogbozoyan.core.configuration.MOCK_CONVERSATION_ID
 
 
 @Configuration
 class AiModelConfiguration(
     private val chatClientBuilder: ChatClient.Builder,
-    private val vectorStore: PgVectorStore,
-    @Value("classpath:/prompts/system-message-ru.st") private val systemMessage: Resource,
+    @Value("classpath:/prompts/system-message-ru.st") private val systemMessageRu: Resource,
+    @Value("\${app.advisor.logger.order}") private val LOGGER_ADVISOR_ORDER: Int,
+    @Value("\${app.advisor.chat-memory.order}") private val CHAT_MEMORY_ADVISOR_ORDER: Int,
+    @Value("\${app.advisor.chat-memory.memory-size}") private val CHAT_MEMORY_SIZE: Int,
+    @Value("\${app.advisor.chat-memory.default-system-advise-text}") private val DEFAULT_SYSTEM_TEXT_ADVISE: String,
+    @Value("\${app.advisor.chat-memory.default-system-advise-text-ru}") private val DEFAULT_SYSTEM_TEXT_ADVISE_RU: String,
 ) {
-
-    private val CHAT_MEMORY_SIZE = 10
 
     @Bean
     fun ollamaClient(jdbcTemplate: JdbcTemplate): ChatClient {
 
-        //        val questionAnswerAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
-        //            .build()
-
-        //        val chatMemoryAdvisor =
-        //            VectorStoreChatMemoryAdvisor.builder(vectorStore)
-        //                .withChatMemoryRetrieveSize(CHAT_MEMORY_SIZE)
-        //                .withConversationId(DEFAULT_CHAT_MEMORY_CONVERSATION_ID)
-        //                .build()
-
-        val chatMemoryAdvisor =
-            MessageChatMemoryAdvisor(pgChatMemory(jdbcTemplate), MOCK_CONVERSATION_ID, CHAT_MEMORY_SIZE)
-
-        val documentRetriever: VectorStoreDocumentRetriever = VectorStoreDocumentRetriever.builder()
-            .vectorStore(vectorStore)
-            .similarityThreshold(0.5)
-            .topK(5)
-            .build()
-
-        val queryAugmenter = ContextualQueryAugmenter.builder()
-            .allowEmptyContext(true)
-            .build()
-
-        val retrievalAugmentationAdvisor =
-            RetrievalAugmentationAdvisor.builder()
-                .documentRetriever(documentRetriever)
-//                .queryAugmenter(queryAugmenter)
-                .order(chatMemoryAdvisor.order+100)
-                .build()
+        val chatMemoryOrder = HIGHEST_PRECEDENCE + CHAT_MEMORY_ADVISOR_ORDER
+        val loggingOrder = Ordered.HIGHEST_PRECEDENCE + LOGGER_ADVISOR_ORDER
 
         val simpleLoggerAdvisor = SimpleLoggerAdvisor(
-            advisedRequestToString(), DEFAULT_RESPONSE_TO_STRING, Ordered.HIGHEST_PRECEDENCE
+            advisedRequestToString(), DEFAULT_RESPONSE_TO_STRING, loggingOrder
         )
 
-        return chatClientBuilder.defaultSystem(systemMessage)
+        val pgVectorChatMemory = PgVectorChatMemory.create(
+            PgVectorChatMemoryConfig.builder()
+                .withJdbcTemplate(jdbcTemplate)
+                .withInitializeSchema(true)
+                .build()
+        )
+
+
+        val chatMemoryAdvisor =
+            PromptChatMemoryAdvisor(
+                pgVectorChatMemory,
+                MOCK_CONVERSATION_ID,
+                CHAT_MEMORY_SIZE,
+                DEFAULT_SYSTEM_TEXT_ADVISE_RU,
+                chatMemoryOrder
+            )
+
+        return chatClientBuilder.defaultSystem(systemMessageRu)
             .defaultAdvisors(
-                chatMemoryAdvisor,
                 simpleLoggerAdvisor,
-                retrievalAugmentationAdvisor, /*questionAnswerAdvisor*/
+                chatMemoryAdvisor,
             )
             .build()
-    }
-
-    @Bean
-    fun pgChatMemory(jdbcTemplate: JdbcTemplate): PgVectorChatMemory {
-        return PgVectorChatMemory
-            .create(
-                PgVectorChatMemoryConfig
-                    .builder()
-                    .withJdbcTemplate(jdbcTemplate)
-                    .withInitializeSchema(true)
-                    .build()
-            )
     }
 
     private fun advisedRequestToString() = { req: AdvisedRequest ->

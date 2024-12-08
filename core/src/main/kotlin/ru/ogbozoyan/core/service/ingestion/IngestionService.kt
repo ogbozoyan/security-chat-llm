@@ -2,6 +2,7 @@ package ru.ogbozoyan.core.service.ingestion
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY
 import org.springframework.ai.document.Document
 import org.springframework.ai.reader.ExtractedTextFormatter
 import org.springframework.ai.reader.TextReader
@@ -107,7 +108,7 @@ class IngestionService(
 
         for (document: Document in documents) {
             document.metadata["file_name"] = fileName
-//            chatId?.let { document.metadata["chat_memory_conversation_id"] = it }
+            chatId?.let { document.metadata[CHAT_MEMORY_CONVERSATION_ID_KEY] = it }
         }
         return documents
     }

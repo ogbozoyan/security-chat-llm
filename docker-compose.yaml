@@ -22,8 +22,8 @@ services:
     image: curlimages/curl:latest
     command: >
       sh -c "
-      curl http://ollama:11434/api/pull -d '{\"name\":\"mxbai-embed-large\"}' &&
-      curl http://ollama:11434/api/pull -d '{\"name\":\"llama3.2:3b\"}'
+      curl http://ollama:11434/api/pull -d '{\"name\":\"nomic-embed-text:latest\"}' &&
+      curl http://ollama:11434/api/pull -d '{\"name\":\"llama3.1:latest\"}'
       "
     depends_on:
       ollama:

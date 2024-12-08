@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import ru.ogbozoyan.core.configuration.ai.AiRagAdvisorFactory
 import ru.ogbozoyan.core.service.chat.ChatService
 import ru.ogbozoyan.core.web.dto.ApiRequest
 import ru.ogbozoyan.core.web.dto.ApiResponse
@@ -22,6 +23,7 @@ import java.util.concurrent.atomic.AtomicLong
 class OllamaService(
     @Qualifier("ollamaClient") private val ollamaChat: ChatClient,
     private val chatService: ChatService,
+    private val aiRagAdvisorFactory: AiRagAdvisorFactory,
 ) {
     private val log: Logger = LoggerFactory.getLogger(OllamaService::class.java)
 
@@ -106,12 +108,21 @@ class OllamaService(
             }
     }
 
-    private fun chatClientRequest(request: ApiRequest) = ollamaChat
-        .prompt(getPrompt(request))
-        .advisors { advisorSpec ->
-            advisorSpec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, request.conversationId)
-            advisorSpec.param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10)
+    private fun chatClientRequest(request: ApiRequest): ChatClient.ChatClientRequestSpec {
+        val prompt = ollamaChat
+            .prompt(getPrompt(request))
+            .advisors { advisorSpec ->
+                advisorSpec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, request.conversationId)
+                advisorSpec.param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10)
+            }
+
+        if (aiRagAdvisorFactory.enabled()) {
+            prompt.advisors(aiRagAdvisorFactory.questionAnswerAdvisor(request.conversationId.toString()))
         }
+
+        return prompt
+    }
+
 
     private fun getPrompt(request: ApiRequest): Prompt {
         log.info("Generating prompt for user query: ${request.question}")

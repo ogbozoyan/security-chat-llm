@@ -39,3 +39,4 @@ out/
 ### Kotlin ###
 .kotlin
 /web/node_modules/
+ollama.log

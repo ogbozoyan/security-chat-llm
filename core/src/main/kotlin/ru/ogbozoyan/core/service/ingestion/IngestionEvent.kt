@@ -3,7 +3,7 @@ package ru.ogbozoyan.core.service.ingestion
 import org.springframework.context.ApplicationEvent
 import org.springframework.core.io.Resource
 import ru.ogbozoyan.core.model.ContentTypeEnum
-import java.util.UUID
+import java.util.*
 
 data class IngestionEvent(
     val resource: Resource,

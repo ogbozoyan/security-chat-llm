@@ -1,4 +1,68 @@
-#file: noinspection SpringBootApplicationYaml
+app:
+  advisor:
+    logger:
+      order: 10
+    chat-memory:
+      order: 20
+      memory-size: 50
+      default-system-advise-text: "
+                        Use the conversation memory from the MEMORY section, surrounded by --------------------- to provide accurate answers.
+                        ---------------------
+                        
+                        MEMORY:
+                         {memory}
+                         
+                        --------------------- "
+      default-system-advise-text-ru: "
+                              Используй память разговора из раздела MEMORY, окруженную ---------------------, чтобы давать точные ответы.
+                              ---------------------
+                              
+                              MEMORY:
+                               {memory}
+                               
+                              --------------------- "
+    rag:
+      default-user-text-advice: "
+      Context information is below, surrounded by ---------------------
+
+                                ---------------------
+                                
+                                CONTEXT:
+                                {question_answer_context}
+                                
+                                ---------------------
+
+      Given the context information and no prior knowledge, answer the query.
+
+      Follow these rules:
+      
+      1. If the answer is not in the context, just say that you don't know.
+      2. Avoid statements like \"Based on the context...\" or \"The provided information...\".
+      
+      Query:
+      "
+      default-user-text-advice-ru: "
+      Контекстная информация находится ниже и выделена ---------------------.
+
+                          ---------------------
+                          
+                          CONTEXT:
+                          {question_answer_context}
+                          
+                          ---------------------
+
+            Учитывая информацию о контексте и отсутствие предварительных знаний, ответьте на запрос.
+            
+            Следуйте следующим правилам:
+            
+            1. Если ответ не содержится в контексте, просто скажите, что вы не знаете.
+            2. Избегайте заявлений типа \"Исходя из контекста...\" или \"Предоставленная информация...\".
+            
+            Вопрос:     
+            "
+      enabled: true
+      order: 30
+
 server:
   tomcat:
     max-swallow-size: ${MAX_FILE_SIZE:100MB}
@@ -22,9 +86,7 @@ spring:
           model: ${AI_OLLAMA_EMBEDDING_OPTIONS_MODEL:nomic-embed-text:latest}
       chat:
         options:
-#          model: ${OLLAMA_CHAT_MODEL:llama3.2:3b}
           model: ${OLLAMA_CHAT_MODEL:llama3.1:latest}
-#          model: ${OLLAMA_CHAT_MODEL:gemma2:latest}
           temperature: ${OLLAMA_CHAT_TEMPERATURE:0.5}
       vectorstore:
         pgvector:

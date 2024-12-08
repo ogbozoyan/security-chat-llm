@@ -22,7 +22,7 @@ private const val RESOURCE_NOT_FOUND = "Resource not found"
 
 private const val UNEXPECTED_ERROR = "An unexpected error occurred"
 
-//@RestControllerAdvice
+@RestControllerAdvice
 class ControllerAdvice(
     private var headers: HttpHeaders = HttpHeaders()
 ) {

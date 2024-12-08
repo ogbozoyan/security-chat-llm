@@ -1,9 +1,4 @@
-package ru.ogbozoyan.core.configuration;
-
-/**
- * @author ogbozoyan
- * @since 06.12.2024
- */
+package ru.ogbozoyan.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
