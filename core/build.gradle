@@ -64,7 +64,6 @@ dependencies {
     implementation 'net.ttddyy.observation:datasource-micrometer-spring-boot:1.0.5'
     implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0'
 
-//    testAndDevelopmentOnly 'org.springframework.boot:spring-boot-devtools'
 }
 
 kotlin {
