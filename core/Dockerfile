@@ -1,34 +1,15 @@
-# Base image for the build stage
-FROM eclipse-temurin:21 AS builder
+FROM gradle:8.5.0-jdk21 AS builder
+COPY --chown=gradle:gradle . /home/gradle/src
 
-WORKDIR /app
+WORKDIR /home/gradle/src
 
-# Copy Gradle Wrapper and source files
-COPY settings.gradle .
-COPY build.gradle .
-COPY gradlew gradlew
-COPY gradlew.bat gradlew.bat
-COPY gradle/ gradle/
-COPY . core/
+RUN gradle clean build --no-daemon -x test
 
-# Ensure Gradle wrapper is executable
-RUN chmod +x ./gradlew
+FROM eclipse-temurin:21 AS runner
 
-ENV _JAVA_OPTIONS="-Djavax.net.debug=ssl:handshake"
+RUN mkdir /app
 
+COPY --from=builder /home/gradle/src/build/libs/core-0.0.1-SNAPSHOT.jar /app/
 
-# Build the project
-RUN ./gradlew build --no-daemon
-
-# Runtime stage
-FROM eclipse-temurin:21
-
-WORKDIR /app
-
-# Copy the built JAR file from the builder stage
-COPY --from=builder /app/core/build/libs/*.jar app.jar
-
-# Expose the application port
 EXPOSE 8080
-
-CMD ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java","-jar","/app/core-0.0.1-SNAPSHOT.jar"]

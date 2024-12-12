@@ -1,5 +1,6 @@
+version: "3.8"
+
 services:
-  #  --------------------------------
   ollama:
     container_name: ollama
     image: ollama/ollama:latest
@@ -16,23 +17,16 @@ services:
       - OLLAMA_DEBUG=1
     networks:
       - ollama_network
-  #  --------------------------------
-  ollama-models-pull:
-    container_name: ollama-models-pull
-    image: curlimages/curl:latest
-    command: >
-      sh -c "
-      curl http://ollama:11434/api/pull -d '{\"name\":\"nomic-embed-text:latest\"}' &&
-      curl http://ollama:11434/api/pull -d '{\"name\":\"llama3.1:latest\"}'
-      "
-    depends_on:
-      ollama:
-        condition: service_healthy
-    networks:
-      - ollama_network
-  #  --------------------------------
+    volumes:
+      - shared-data:/shared
+    command:
+      - ollama
+      - pull
+      - nomic-embed-text:latest
+
   pgvector:
     image: 'pgvector/pgvector:pg16'
+    container_name: pgvector
     environment:
       - 'POSTGRES_DB=core'
       - 'POSTGRES_PASSWORD=admin'
@@ -41,7 +35,11 @@ services:
       - "org.springframework.boot.service-connection=postgres"
     ports:
       - '5432:5432'
-  #  --------------------------------
+    networks:
+      - ollama_network
+    volumes:
+      - pgvector-data:/var/lib/postgresql/data
+
   backend:
     build:
       context: ./core
@@ -50,12 +48,22 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - 'DATASOURCE_URL=${DATASOURCE_URL:jdbc:postgresql://localhost:5432/core}'
-      - 'DATASOURCE_USERNAME=${POSTGRES_USER}'
-      - 'DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}'
+      - 'DATASOURCE_URL=${DATASOURCE_URL:-jdbc:postgresql://pgvector:5432/core}'
+      - 'DATASOURCE_USERNAME=${POSTGRES_USER:-admin}'
+      - 'DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-admin}'
+      - 'MAX_FILE_SIZE=${MAX_FILE_SIZE:-100MB}'
+      - 'OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434/}'
+      - 'AI_OLLAMA_EMBEDDING_OPTIONS_MODEL=${AI_OLLAMA_EMBEDDING_OPTIONS_MODEL:-nomic-embed-text:latest}'
+      - 'OLLAMA_CHAT_MODEL=${OLLAMA_CHAT_MODEL:-llama3.1:latest}'
+      - 'OLLAMA_CHAT_TEMPERATURE=${OLLAMA_CHAT_TEMPERATURE:-0.5}'
     depends_on:
       - pgvector
-  #  --------------------------------
+    networks:
+      - ollama_network
+    volumes:
+      - backend-logs:/app/logs
+      - shared-data:/shared
+
   frontend:
     build:
       context: ./web
@@ -65,6 +73,14 @@ services:
       - "3000:80"
     depends_on:
       - backend
+    networks:
+      - ollama_network
+
 networks:
   ollama_network:
     driver: bridge
+
+volumes:
+  pgvector-data:
+  backend-logs:
+  shared-data:

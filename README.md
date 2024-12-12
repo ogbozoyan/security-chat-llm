@@ -11,6 +11,15 @@ Implement RAG based on lectures of subject:
 3. embed all of them
 
 # HOW TO:
+## Run locally 
+1. 
+    ```shell
+    docker compose up --build
+    ```
+2
+ ```shell
+ docker compose up -d
+ ```
 
 ## Ollama:
 
