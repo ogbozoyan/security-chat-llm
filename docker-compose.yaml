@@ -5,6 +5,7 @@ services:
     container_name: ollama
     image: ollama/ollama:latest
     restart: unless-stopped
+    tty: true
     ports:
       - "11434:11434"
     healthcheck:
@@ -15,15 +16,13 @@ services:
       start_period: 10s
     environment:
       - OLLAMA_DEBUG=1
+    entrypoint: ["/usr/bin/bash", "/entrypoint.sh"]
     networks:
       - ollama_network
     volumes:
+      - ./ollama/ollama:/root/.ollama
+      - ./entrypoint.sh:/entrypoint.sh
       - shared-data:/shared
-    command:
-      - ollama
-      - pull
-      - nomic-embed-text:latest
-
   pgvector:
     image: 'pgvector/pgvector:pg16'
     container_name: pgvector
