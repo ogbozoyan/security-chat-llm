@@ -6,13 +6,13 @@ services:
     tty: true
     ports:
       - "11434:11434"
-#    deploy:
-#      resources:
-#        reservations:
-#          devices:
-#            - driver: nvidia
-#              count: 1
-#              capabilities: [ gpu ]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
     healthcheck:
       test: ollama list || exit 1
       interval: 10s
