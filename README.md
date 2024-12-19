@@ -1,4 +1,4 @@
-# Security chat
+# Security Chat
 
 Spring AI based web application whose purpose is to demonstrate how to easily build RAG applications on Spring stack.
 
@@ -24,7 +24,7 @@ Implement RAG based on lectures of subject:
 ## MacOS
 
 Unfortunately OLLAMA docker image requires NVIDIA GPU drivers [see issue](https://github.com/ollama/ollama/issues/3417).
-The only way to run it locally, is [manual build](README.md#manually-). 
+The only way to run it locally, is [manual build](README.md#manually). 
 
 ## Linux
 
@@ -43,7 +43,7 @@ The only way to run it locally, is [manual build](README.md#manually-).
  docker compose up -d
  ```
 
-### Manually 
+### Manually
 
 1. Install [Ollama](https://ollama.com/download)
 2. Pull models
